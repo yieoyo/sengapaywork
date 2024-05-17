@@ -123,12 +123,12 @@ $(function(){
 										<div class="kt-radio-inline">
 											@if($subProjectDetails->project_module == 1)
 												<label class="kt-radio">
-													{{ Form::radio('payment_type','1','',['class'=>'']) }} {{trans('messages.project_template.recurring')}}
+													{{ Form::radio('payment_type','1','',['class'=>'payment-type']) }} {{trans('messages.project_template.recurring')}}
 													<span></span>
 												</label>
 											@endif
 											<label class="kt-radio">
-												{{ Form::radio('payment_type','2','1',['class'=>'']) }} {{trans('messages.project_template.fix_price')}}
+												{{ Form::radio('payment_type','2','1',['class'=>'payment-type']) }} {{trans('messages.project_template.fix_price')}}
 												<span></span>
 											</label>
 											<span class="help-inline"></span>
@@ -143,7 +143,7 @@ $(function(){
 											@if(!empty($paymentMethods))
 											  @foreach($paymentMethods as $methodId=>$MethodName)
 												<label class="kt-checkbox">
-													{{ Form::checkbox('payment_method[]',$methodId,'', ['class'=>'']) }} {{$MethodName}}
+													{{ Form::checkbox('payment_method[]',$methodId,'', ['class'=>'payment-option']) }} {{$MethodName}}
 													<span></span>
 												</label>
 											  @endforeach
@@ -1309,7 +1309,50 @@ $(function(){
 		<!-- end:: Content -->
 	</div>
 </div>
+<script>
+// payment module
+// Function to handle radio button change
+function handleRadioChange(event) {
+    // Update selectedValue when a radio button is changed
+    var selectedValue = event.target.value;
 
+    // Show or hide specific payment options based on selected value
+    switch(selectedValue) {
+        case '1':
+            // Hide the payment option for value 13
+            document.querySelector('input[value="13"].payment-option').parentNode.style.display = 'none';
+            document.querySelector('input[value="11"].payment-option').parentNode.style.display = 'block';
+            document.querySelector('input[value="12"].payment-option').parentNode.style.display = 'block';
+            break;
+        case '2':
+            // Show the payment option for value 13 and hide the options for values 11 and 12
+            document.querySelector('input[value="13"].payment-option').parentNode.style.display = 'block';
+            document.querySelector('input[value="11"].payment-option').parentNode.style.display = 'none';
+            document.querySelector('input[value="12"].payment-option').parentNode.style.display = 'none';
+            break;
+    }
+}
+
+// Get all elements with class "payment-type"
+var paymentTypeRadios = document.querySelectorAll('.payment-type');
+
+// Loop through each radio button
+paymentTypeRadios.forEach(function(radio) {
+    // Add event listener to each radio button
+    radio.addEventListener('change', handleRadioChange);
+});
+
+// Initialize selectedValue to the initially selected radio button's value
+var selectedValue = '';
+paymentTypeRadios.forEach(function(radio) {
+    if (radio.checked) {
+        selectedValue = radio.value;
+        // Trigger the change event initially to set up visibility
+        radio.dispatchEvent(new Event('change'));
+    }
+});
+
+</script>
 
 <script>
 $(".donation_btn_url_blk").hide();
