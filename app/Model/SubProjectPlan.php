@@ -15,6 +15,8 @@ class SubProjectPlan extends Eloquent  {
 	 */
  
 	protected $table = 'sub_project_plans';
+
+	protected $fillable = ['sub_project_id', 'price', 'is_primary', 'type', 'is_deleted', 'senangpay_id'];
 	
 	
 }// end SubProjectPlan class

@@ -92,9 +92,10 @@ $app->make("config")->set("Settings.api_endpoint", "17b9c75fdaba782680e0e768f6c6
 $app->make("config")->set("Settings.api_username", "dana@hcf.org.my");
 $app->make("config")->set("Settings.api_password", "Reverts1619!@");
 $app->make("config")->set("Settings.receiver_number", "0137927853");
-$app->make("config")->set("Settings.payment_secret_key", "c1c38c36-4139-474d-a2a6-d332e9c16f7f");
-$app->make("config")->set("Settings.payment_collection_id", "nvbhfumu");
-$app->make("config")->set("Settings.payment_description", "Billplz (FPX)");
+$app->make("config")->set("Settings.payment_secret_key", "6732-439");
+$app->make("config")->set("Settings.payment_merchant_id", "183171565848172");
+$app->make("config")->set("Settings.payment_collection_id", "183171565848172");
+$app->make("config")->set("Settings.payment_description", "SenangPay");
 $app->make("config")->set("Settings.offline_payment_option", "");
 $app->make("config")->set("Settings.analytics", "");
 $app->make("config")->set("Settings.google_analytics", "");

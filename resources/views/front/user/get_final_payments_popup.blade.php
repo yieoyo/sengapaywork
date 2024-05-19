@@ -318,15 +318,18 @@ $("#payNow").click(function(){
 		cache: false,             // To unable request pages to be cached
 		processData:false,
 		success: function(r){
+			window.location.href = r.url;
 			setTimeout(function(){ 
 				Swal.close()
 			}, 2900);
+			
 			error_array 	= 	JSON.stringify(r);
 			datas			=	JSON.parse(error_array);
 			if(datas['success'] == 1) {
 				$("#kt_modal_payment_form").modal('hide');
 				//location.reload();
 				//window.location.href	 =	"{{ route('User.dashboard') }}";
+				
 				location.reload();
 			}else if(datas['success'] == 2){
 				window.location.href	 =	datas['billUrl'];

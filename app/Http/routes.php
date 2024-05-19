@@ -14,7 +14,10 @@ require_once(APP_PATH.'/libraries/CustomHelper.php');
 |
 */
 	################################################################# Front Routing start here ###################################################
- 
+	Route::get('/test', function(Request $request){
+		dd($request);
+		Log::info('This is an info log message.' . $request);
+	});
 	Route::get('/base/uploder','BaseController@saveCkeditorImages');
 	Route::post('/base/uploder','BaseController@saveCkeditorImages'); 
 	Route::any('/base/cleardb','BaseController@clearDatabase'); 

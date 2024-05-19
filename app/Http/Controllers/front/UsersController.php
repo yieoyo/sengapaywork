@@ -810,8 +810,7 @@ class UsersController extends BaseController
 		$PaymentId = !empty(Input::get('PaymentId')) ? Input::get('PaymentId') : 0;
 		$orderDetails = DonationOrder::where('id', $orderId)->first();
 
-		$subProjectDetails = SubProject::select('id', 'project_module', 'customize_plan_option')->where('id', $orderDetails->sub_project_id)->first();
-
+		$subProjectDetails = SubProject::select('id', 'project_module', 'customize_plan_option', 'payment_method')->where('id', $orderDetails->sub_project_id)->first();
 		if ($subProjectDetails->project_module == 1) {
 			if (!empty($orderDetails->plan_price)) {
 				$planPrice = SubProjectPlan::where('id', $orderDetails->plan_price)->where('is_deleted', 0)->pluck('price');
@@ -843,9 +842,10 @@ class UsersController extends BaseController
 					}else{
 						$planPrice	=	$orderDetails->other_plan_price;
 					} */
-
-		$paymentOptions = PaymentOption::where('is_active', 1)->orderBy('id', 'ASC')->get();
-
+		
+		$subProjectPaymentMethods = explode(',', $subProjectDetails->payment_method);
+		$subProjectPaymentMethods = array_map('trim', $subProjectPaymentMethods);
+		$paymentOptions = PaymentOption::whereIn('id', $subProjectPaymentMethods)->orderBy('id', 'ASC')->get();
 		$userId = !empty($orderDetails) ? ($orderDetails->user_id) : 0;
 
 		return View::make('front.user.get_final_payments_popup', compact("orderDetails", "planPrice", "paymentOptions", "PaymentId"));
@@ -886,14 +886,14 @@ class UsersController extends BaseController
 			return Response::json($err);
 			die;
 		}
-
+		
 		if (!empty(Input::get('order_id'))) {
 			$payment_id = !empty(Input::get('payment_id')) ? Input::get('payment_id') : '';
 
 			$orderDetails = DonationOrder::where('id', Input::get('order_id'))->first();
 			$OrderId = $orderDetails->id;
 
-			$subProjectDetails = SubProject::select('id', 'project_module', 'customize_plan_option')->where('id', $orderDetails->sub_project_id)->first();
+			$subProjectDetails = SubProject::select('id', 'project_module', 'customize_plan_option', 'sub_project_name', 'slug', 'meta_description')->where('id', $orderDetails->sub_project_id)->first();
 
 			if ($subProjectDetails->project_module == 1) {
 				if (!empty($orderDetails->plan_price)) {
@@ -926,7 +926,7 @@ class UsersController extends BaseController
 							  }else{
 								  $planPrice	=	$orderDetails->other_plan_price;
 							  } */
-
+			
 			if (empty(Input::get('total_payment')) && Input::get('total_payment') < $planPrice) {
 				$err = array();
 				$err['error'] = 1;
@@ -934,13 +934,53 @@ class UsersController extends BaseController
 				return Response::json($err);
 				die;
 			}
-
-			if (Input::get('payment_option') == 5) {
-
-				$api_key = Config::get("Settings.payment_secret_key"); //'af6b3ddc-5152-4852-b3b8-5605aed427a1';
+			
+			if (Input::get('payment_option') == 11) {
+				$paymentSecretKey = Config::get("Settings.payment_secret_key"); //'af6b3ddc-5152-4852-b3b8-5605aed427a1';
+				$paymentMerchantId = Config::get("Settings.payment_merchant_id");
 				$paymentCollectionId = Config::get("Settings.payment_collection_id");
+				// look for a senangpay product using sub project plan id
+				$SubProjectPlan = SubProjectPlan::where('id', $orderDetails->plan_price)->where('sub_project_id', $subProjectDetails->id)->first();
+				
+				if(!$subProjectDetails->senangpay_id){
+					$senangpayPayload = [
+						'name' => $subProjectDetails->sub_project_name,
+						'price' => $planPrice,
+						'code' => $subProjectDetails->id,
+						'description' => $subProjectDetails->meta_description,
+						'info_url' => 'http://sengapaywork.test/project-detail/' . $subProjectDetails->slug,
+						'sst' => 0,
+						'display_address' => 0,
+						'recurring_type' => 'INSTALLMENT',
+						'frequency' => 1,
+						'repitition' => 1,
+						'billing_day' => date("j"),
+						'hash' => hash('sha256', $paymentSecretKey . $subProjectDetails->sub_project_name . $planPrice . $subProjectDetails->id),
+					];
+					// Initialize cURL session
+					$ch = curl_init('https://api.sandbox.senangpay.my/recurring/product/create');
 
-				//create collection if not found/empty
+					// Set cURL options
+					curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+					curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+					curl_setopt($ch, CURLOPT_USERPWD, "$paymentMerchantId:");
+					curl_setopt($ch, CURLOPT_POST, true);
+					curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($senangpayPayload));
+
+					// Execute cURL request
+					$response = curl_exec($ch);
+					curl_close($ch);
+					$responseData = json_decode($response, true);
+					if ($responseData['result'] == 1) {
+						$SubProjectPlan->update(['senangpay_id' => $responseData['recurring_id']]);
+					}
+
+				}
+				if($SubProjectPlan->senangpay_id) {
+					$paymentUrl = 'https://sandbox.senangpay.my/payment/' . $SubProjectPlan->senangpay_id . '?name=' . $orderDetails->full_name . '&email=' . $orderDetails->email . '&phone=' . $orderDetails->phone . '&hash=' . hash('sha256', $paymentSecretKey . $SubProjectPlan->senangpay_id . $orderDetails->id);
+					return Response::json(['url' => $paymentUrl]);
+				}
+				// if now found create one
 				if (empty($paymentCollectionId)) {
 
 					//$host = 'https://www.billplz.com/api/v4/webhook_rank';
@@ -6667,9 +6707,11 @@ class UsersController extends BaseController
 			$getSubProjectId = DB::table('sub_projects')->where('id', Input::get('sub_project_id'))->where('is_deleted', 0)->pluck('id');
 
 			$model = SubProject::find($getSubProjectId);
+			
 			if ($model->sub_project_name != Input::get('sub_project_name')) {
 				$model->slug = $this->getSlug(Input::get('sub_project_name'), 'slug', 'SubProject');
 			}
+			
 			$model->sub_project_name = Input::get('sub_project_name');
 			$model->is_active = !empty(Input::get('is_active')) ? Input::get('is_active') : 0;
 			$model->subject_type = Input::get('subject_type');
@@ -6738,11 +6780,8 @@ class UsersController extends BaseController
 			//$model->is_active						=  1;
 			//pr($model); die;
 			$model->save();
-			$modelId = $model->id;
-			$senangPaytypes = explode(',', $model->payment_method);
-			$senangpay_secret_key = '6732-439';
-			$senangpay_merchant_id = '183171565848172';
-
+			$modelId = $model->id;	
+			
 			if (!empty($DailyPlans)) {
 				$DailyPlanIds = array();
 				foreach ($DailyPlans as $key => $DailyPlan) {
@@ -6761,73 +6800,7 @@ class UsersController extends BaseController
 					$DailyPlanModel->is_primary = $is_primary;
 					$DailyPlanModel->type = "daily";
 					$DailyPlanModel->save();
-					if (in_array('11', $senangPaytypes)) {
-						// installment
-						$code = 'SP' . strval($model->id) . 'DI' . strval($DailyPlanModel->id);
-						$senangpayPayload = [
-							'name' => $model->sub_project_name,
-							'price' => $DailyPlanModel->price,
-							'code' => $code,
-							'description' => $model->meta_description,
-							'info_url' => 'http://sengapaywork.test/project-detail/' . $model->slug,
-							'sst' => 0,
-							'display_address' => 0,
-							'recurring_type' => 'INSTALLMENT',
-							'frequency' => 1,
-							'repitition' => 1,
-							'billing_day' => date("j"),
-							'hash' => hash('sha256', $senangpay_secret_key . $model->sub_project_name . $DailyPlanModel->price . $code),
-						];
-						
-						
-						// Initialize cURL session
-						$ch = curl_init('https://api.sandbox.senangpay.my/recurring/product/create');
-		
-						// Set cURL options
-						curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-						curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
-						curl_setopt($ch, CURLOPT_USERPWD, "$senangpay_merchant_id:");
-						curl_setopt($ch, CURLOPT_POST, true);
-						curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($senangpayPayload));
-		
-						// Execute cURL request
-						$response = curl_exec($ch);
-						// Check for errors
-						if (curl_errno($ch)) {
-							echo 'Error:' . curl_error($ch);
-						} else {
-							// Decode the JSON response
-							$responseData = json_decode($response, true);
-							
-							
-							// Close cURL session
-							curl_close($ch);
-							// Check the result
-							if ($responseData['result'] == 1) {
-								$model->update(['recurring_id' => $responseData['recurring_id']]);
-							}
-							
-						}
-					} else if (in_array('12', $senangPaytypes)) {
-						// subscription
-						$senangpayPayload = [
-							'name' => $model->sub_project_name,
-							'price' => $DailyPlanModel->price,
-							'code' => $model->sub_project_name,
-							'description' => $model->sub_project_name,
-							'sst' => $model->sub_project_name,
-							'display_address' => $model->sub_project_name, //
-							'recurring_type' => $model->sub_project_name,
-							'frequency' => $model->sub_project_name,
-							'repitition' => $model->sub_project_name, // 1-12
-							'billing_day' => $model->sub_project_name, // 1-12
-							'recurring_type' => $model->sub_project_name, // confused
-							'hash' => hash('sha256', $secret_key . $model->sub_project_name . $DailyPlanModel->price . $code), // {secret key}{name}{price}{code}
-							'customer_overwrite_price' => $model->sub_project_name, // compulsory for SUBSCRIPTION
-							'customer_set_date' => $model->sub_project_name, // compulsory for SUBSCRIPTION
-							'start_payment' => 0, // 0 for immidiately.[only valid for monthly frequency. This setting is permanent. compulsory for SUBSCRIPTION ]
-						];
-					}
+
 		
 					$DailyPlanIds[] = $DailyPlanModel->id;
 				}
@@ -6857,7 +6830,7 @@ class UsersController extends BaseController
 					$DailyPeriodModel->is_primary = $is_primary;
 					$DailyPeriodModel->type = "daily";
 					$DailyPeriodModel->save();
-
+					
 					$DailyPeriodIds[] = $DailyPeriodModel->id;
 				}
 
@@ -6886,70 +6859,7 @@ class UsersController extends BaseController
 					$MonthlyPlanModel->is_primary = $is_primary;
 					$MonthlyPlanModel->type = "monthly";
 					$MonthlyPlanModel->save();
-					if (in_array('11', $senangPaytypes)) {
-						// installment
-						$code = 'SP' + str($model->id) + 'MI' + str($MonthlyPlanModel->id);
-						$senangpayPayload = [
-							'name' => $model->sub_project_name,
-							'price' => $MonthlyPlanModel->price,
-							'code' => $code,
-							'description' => $model->meta_description,
-							'info_url' => $model->sub_project_name, // optional
-							'sst' => 0,
-							'display_address' => 0,
-							'recurring_type' => 'INSTALLMENT',
-							'frequency' => 1,
-							'repitition' => 1, // 1-12
-							'billing_day' => date("j"),
-							'hash' => hash('sha256', $senangpay_secret_key . $model->sub_project_name . $MonthlyPlanModel->price . $code), // {secret key}{name}{price}{code}
-						];
-		
-						// Initialize cURL session
-						$ch = curl_init('https://api.sandbox.senangpay.my/recurring/product/create');
-		
-						// Set cURL options
-						curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-						curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
-						curl_setopt($ch, CURLOPT_USERPWD, "$senangpay_merchant_id:");
-						curl_setopt($ch, CURLOPT_POST, true);
-						curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($senangpayPayload));
-		
-						// Execute cURL request
-						$response = curl_exec($ch);
-		
-						// Check for errors
-						if (curl_errno($ch)) {
-							echo 'Error:' . curl_error($ch);
-						} else {
-							// Decode the JSON response
-							$responseData = json_decode($response, true);
-							// Close cURL session
-							curl_close($ch);
-							// Check the result
-							if ($responseData['result'] == 1) {
-								$model->update(['recurring_id' => $responseData['recurring_id']]);
-							}
-						}
-					} else if (in_array('12', $senangPaytypes)) {
-						// subscription
-						$senangpayPayload = [
-							'name' => $model->sub_project_name,
-							'price' => $DailyPlanModel->price,
-							'code' => $model->sub_project_name,
-							'description' => $model->sub_project_name,
-							'sst' => $model->sub_project_name,
-							'display_address' => $model->sub_project_name, //
-							'recurring_type' => $model->sub_project_name,
-							'frequency' => $model->sub_project_name,
-							'repitition' => $model->sub_project_name, // 1-12
-							'billing_day' => $model->sub_project_name, // 1-12
-							'recurring_type' => $model->sub_project_name, // confused
-							'hash' => hash('sha256', $secret_key . $model->sub_project_name . $DailyPlanModel->price . $code), // {secret key}{name}{price}{code}
-							'customer_overwrite_price' => $model->sub_project_name, // compulsory for SUBSCRIPTION
-							'customer_set_date' => $model->sub_project_name, // compulsory for SUBSCRIPTION
-							'start_payment' => 0, // 0 for immidiately.[only valid for monthly frequency. This setting is permanent. compulsory for SUBSCRIPTION ]
-						];
-					}
+
 					$MonthlyPlanIds[] = $MonthlyPlanModel->id;
 				}
 
@@ -7269,10 +7179,6 @@ class UsersController extends BaseController
 				//deleted record delete from table
 				SubProjectDanaPriceRange::where('sub_project_id', $modelId)->update(array('is_deleted' => 1));
 			}
-
-
-
-
 			$images = Session::get('TemplateSliderImage');
 			if (!empty($images)) {
 				$counter = "0";
