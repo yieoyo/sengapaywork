@@ -1,9 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1 , user-scalable=no">
+	
+	<!-- For senangpay testing-->
+	<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
 	<!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
 	<?php
 		if(!empty(Config::get("Settings.favicon")) && File::exists(SYSTEM_IMAGE_DIRECTROY_PATH . Config::get("Settings.favicon"))){

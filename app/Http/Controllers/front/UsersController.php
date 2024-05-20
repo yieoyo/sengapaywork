@@ -977,7 +977,7 @@ class UsersController extends BaseController
 
 				}
 				if($SubProjectPlan->senangpay_id) {
-					$paymentUrl = 'https://sandbox.senangpay.my/payment/' . $SubProjectPlan->senangpay_id . '?name=' . $orderDetails->full_name . '&email=' . $orderDetails->email . '&phone=' . $orderDetails->phone . '&hash=' . hash('sha256', $paymentSecretKey . $SubProjectPlan->senangpay_id . $orderDetails->id);
+					$paymentUrl = 'https://sandbox.senangpay.my/recurring/payment/'.$paymentMerchantId .'?recurring_id' . $SubProjectPlan->senangpay_id . 'order_id='. $OrderId .'&name=' . $orderDetails->full_name . '&email=' . $orderDetails->email . '&phone=' . $orderDetails->phone . '&hash=' . hash('sha256', $paymentSecretKey . $SubProjectPlan->senangpay_id . $orderDetails->id);
 					return Response::json(['url' => $paymentUrl]);
 				}
 				// if now found create one
@@ -1114,6 +1114,59 @@ class UsersController extends BaseController
 
 	}
 
+    public function handleSenangPayWebhook(\Illuminate\Http\Request $request)
+    {		
+		\Illuminate\Support\Facades\Log::info('Payment successful', [
+			'hook' => 'arrive',
+		]);
+        // Get the parameters from the request
+        $status_id = $request->input('status_id');
+        $order_id = $request->input('order_id');
+        $msg = $request->input('msg');
+        $transaction_id = $request->input('transaction_id');
+        $hash = $request->input('hash');
+		\Illuminate\Support\Facades\Log::info('Payment successful', [
+			'status_id' => $status_id,
+			'order_id' => $order_id,
+			'transaction_id' => $transaction_id,
+			'msg' => $msg,
+			'hash' => $hash,
+		]);
+        // Your secret key
+        $secret_key = Config::get("Settings.payment_secret_key");
+        // Generate the string to be hashed
+        $str = $secret_key . $status_id . $order_id . $transaction_id . $msg;
+
+        // Generate the hash using SHA256
+        $generated_hash = hash_hmac('sha256', $str, $secret_key);
+
+        // Verify the hash
+        if ($generated_hash !== $hash) {
+            // Hash does not match, possible tampering
+            return response()->json(['error' => 'Invalid hash'], 400);
+        }
+
+        // Process the payment based on the status_id
+        switch ($status_id) {
+            case '1':
+				Log::info('Payment status', $status_id);
+                break;
+            case '0':
+                // Payment failed
+                // Handle payment failure
+                break;
+            case '2':
+                // Payment pending authorization
+                // Handle pending payment
+                break;
+            default:
+                // Unknown status
+                return response()->json(['error' => 'Unknown status'], 400);
+        }
+
+        // Return a response to senangPay
+        return response()->json(['message' => 'Webhook received successfully'], 200);
+    }
 
 	public function getDashboardChartData()
 	{

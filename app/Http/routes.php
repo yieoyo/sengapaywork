@@ -14,10 +14,7 @@ require_once(APP_PATH.'/libraries/CustomHelper.php');
 |
 */
 	################################################################# Front Routing start here ###################################################
-	Route::get('/test', function(Request $request){
-		dd($request);
-		Log::info('This is an info log message.' . $request);
-	});
+
 	Route::get('/base/uploder','BaseController@saveCkeditorImages');
 	Route::post('/base/uploder','BaseController@saveCkeditorImages'); 
 	Route::any('/base/cleardb','BaseController@clearDatabase'); 
@@ -28,7 +25,8 @@ require_once(APP_PATH.'/libraries/CustomHelper.php');
 			return 'View cache cleared';
 		}); */
 
-		
+		Route::get('/senangpay/webhook', 'UsersController@handleSenangPayWebhook');
+
 		Route::get('/', 'UsersController@index');
 		Route::get('/login', 'HomeController@newlogin');
 		Route::post('/login', 'HomeController@login');
@@ -360,10 +358,7 @@ require_once(APP_PATH.'/libraries/CustomHelper.php');
 		Route::post('/send-test-sms','UsersController@sendTestSms');
 		
 		Route::post('/send-test-email-template','EmailtemplateController@sendTestEmailTemplate');
-		
-		
-		
-		
+
 		
 	});
 	
