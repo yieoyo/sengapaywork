@@ -149,15 +149,8 @@ span.delete_blk {
 									<label class="col-3 col-form-label">{{ trans('messages.edit_book_plan.payment_type') }}</label>
 									<div class="col-9">
 										<div class="kt-radio-inline">
-											@if($subProjectDetails->project_module == 1)
-												<label class="kt-radio">
-													{{ Form::radio('payment_type','1',($subProjectDetails->payment_type == 1) ? 1: '',['class'=>'']) }} 
-													{{ trans('messages.project_template.recurring') }}
-													<span></span>
-												</label>
-											@endif
 											<label class="kt-radio">
-												{{ Form::radio('payment_type','2',($subProjectDetails->payment_type == 2) ? 1: '',['class'=>'']) }} 
+												{{ Form::radio('payment_type','2',1,['class'=>'']) }} 
 												{{ trans('messages.project_template.fix_price') }}
 												<span></span>
 											</label>

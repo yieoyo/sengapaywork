@@ -568,13 +568,11 @@
 												<td data-field="Status" class="kt-datatable__cell">
 													<span style="width: 120px;">
 													@if($recentAllOrder->main_payment_status == 1)
-														<span class="kt-badge  kt-badge--warning kt-badge--inline kt-badge--pill">{{ trans('messages.dashboard.waiting_approval') }}</span>
-													@elseif($recentAllOrder->main_payment_status == 2)
 														<span class="kt-badge  kt-badge--info kt-badge--inline kt-badge--pill">{{ trans('messages.dashboard.success') }}</span>
-													@elseif($recentAllOrder->main_payment_status == 3)
+													@elseif($recentAllOrder->main_payment_status == 2)
 														<span class="kt-badge  kt-badge--warning kt-badge--inline kt-badge--pill">{{ trans('messages.dashboard.pending') }}</span>
-													@elseif($recentAllOrder->main_payment_status == 5)
-														<span class="kt-badge  kt-badge--primary kt-badge--inline kt-badge--pill">{{ trans('messages.dashboard.expired') }}</span>
+													@elseif($recentAllOrder->main_payment_status == 0)
+														<span class="kt-badge  kt-badge--danger kt-badge--inline kt-badge--pill">{{ trans('messages.dashboard.expired') }}</span>
 													@else
 														<span class="kt-badge  kt-badge--danger kt-badge--inline kt-badge--pill">{{ trans('messages.dashboard.not_paid') }}</span>
 													@endif
@@ -704,13 +702,11 @@
 												<td data-field="Status" class="kt-datatable__cell">
 													<span style="width: 120px;">
 													@if($record->main_payment_status == 1)
-														<span class="kt-badge  kt-badge--warning kt-badge--inline kt-badge--pill">{{ trans('messages.dashboard.waiting_approval') }}</span>
+													<span class="kt-badge  kt-badge--info kt-badge--inline kt-badge--pill">{{ trans('messages.dashboard.success') }}</span>
 													@elseif($record->main_payment_status == 2)
-														<span class="kt-badge  kt-badge--info kt-badge--inline kt-badge--pill">{{ trans('messages.dashboard.success') }}</span>
-													@elseif($record->main_payment_status == 3)
 														<span class="kt-badge  kt-badge--warning kt-badge--inline kt-badge--pill">{{ trans('messages.dashboard.pending') }}</span>
-													@elseif($record->main_payment_status == 5)
-														<span class="kt-badge  kt-badge--primary kt-badge--inline kt-badge--pill">{{ trans('messages.dashboard.expired') }}</span>
+													@elseif($record->main_payment_status == 0)
+														<span class="kt-badge  kt-badge--danger kt-badge--inline kt-badge--pill">{{ trans('messages.dashboard.expired') }}</span>
 													@else
 														<span class="kt-badge  kt-badge--danger kt-badge--inline kt-badge--pill">{{ trans('messages.dashboard.not_paid') }}</span>
 													@endif
@@ -839,17 +835,15 @@
 												</td>
 												<td data-field="Status" class="kt-datatable__cell">
 													<span style="width: 120px;">
-													@if($record->main_payment_status == 1)
-														<span class="kt-badge  kt-badge--warning kt-badge--inline kt-badge--pill">{{ trans('messages.dashboard.waiting_approval') }}</span>
-													@elseif($record->main_payment_status == 2)
+														@if($record->main_payment_status == 1)
 														<span class="kt-badge  kt-badge--info kt-badge--inline kt-badge--pill">{{ trans('messages.dashboard.success') }}</span>
-													@elseif($record->main_payment_status == 3)
-														<span class="kt-badge  kt-badge--warning kt-badge--inline kt-badge--pill">{{ trans('messages.dashboard.pending') }}</span>
-													@elseif($record->main_payment_status == 5)
-														<span class="kt-badge  kt-badge--primary kt-badge--inline kt-badge--pill">{{ trans('messages.dashboard.expired') }}</span>
-													@else
-														<span class="kt-badge  kt-badge--danger kt-badge--inline kt-badge--pill">{{ trans('messages.dashboard.not_paid') }}</span>
-													@endif
+														@elseif($record->main_payment_status == 2)
+															<span class="kt-badge  kt-badge--warning kt-badge--inline kt-badge--pill">{{ trans('messages.dashboard.pending') }}</span>
+														@elseif($record->main_payment_status == 0)
+															<span class="kt-badge  kt-badge--danger kt-badge--inline kt-badge--pill">{{ trans('messages.dashboard.expired') }}</span>
+														@else
+															<span class="kt-badge  kt-badge--danger kt-badge--inline kt-badge--pill">{{ trans('messages.dashboard.not_paid') }}</span>
+														@endif
 													</span>
 												</td>
 												<td data-field="Actions" class="kt-datatable__cell">
@@ -975,17 +969,15 @@
 												</td>
 												<td data-field="Status" class="kt-datatable__cell">
 													<span style="width: 120px;">
-													@if($record->main_payment_status == 1)
-														<span class="kt-badge  kt-badge--warning kt-badge--inline kt-badge--pill">{{ trans('messages.dashboard.waiting_approval') }}</span>
-													@elseif($record->main_payment_status == 2)
+														@if($record->main_payment_status == 1)
 														<span class="kt-badge  kt-badge--info kt-badge--inline kt-badge--pill">{{ trans('messages.dashboard.success') }}</span>
-													@elseif($record->main_payment_status == 3)
-														<span class="kt-badge  kt-badge--warning kt-badge--inline kt-badge--pill">{{ trans('messages.dashboard.pending') }}</span>
-													@elseif($record->main_payment_status == 5)
-														<span class="kt-badge  kt-badge--primary kt-badge--inline kt-badge--pill">{{ trans('messages.dashboard.expired') }}</span>
-													@else
-														<span class="kt-badge  kt-badge--danger kt-badge--inline kt-badge--pill">{{ trans('messages.dashboard.not_paid') }}</span>
-													@endif
+														@elseif($record->main_payment_status == 2)
+															<span class="kt-badge  kt-badge--warning kt-badge--inline kt-badge--pill">{{ trans('messages.dashboard.pending') }}</span>
+														@elseif($record->main_payment_status == 0)
+															<span class="kt-badge  kt-badge--danger kt-badge--inline kt-badge--pill">{{ trans('messages.dashboard.expired') }}</span>
+														@else
+															<span class="kt-badge  kt-badge--danger kt-badge--inline kt-badge--pill">{{ trans('messages.dashboard.not_paid') }}</span>
+														@endif
 													</span>
 												</td>
 												<td data-field="Actions" class="kt-datatable__cell">

@@ -314,17 +314,9 @@
 						<!--end::Form-->
 					</div>
 				</div>
-				
 			</div>
-
-
-		
-			
-		
-
 			<!--End::App-->
 		</div>
-
 		<!-- end:: Content -->
 	</div>
 </div>

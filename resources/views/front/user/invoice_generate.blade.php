@@ -18,10 +18,10 @@
 							 {{ trans("messages.invoice_generate.infoq")}}</span>
 						<span class="kt-subheader__breadcrumbs-separator"></span>
 						<a href="" class="kt-subheader__breadcrumbs-link">
-							{{ !empty($subProjectDetails) ? $subProjectDetails->project_name:''; }} </a>
+							{{ !empty($subProjectDetails) ? $subProjectDetails->project_name :'' }} </a>
 						<span class="kt-subheader__breadcrumbs-separator"></span>
 						<a href="" class="kt-subheader__breadcrumbs-link">
-							{{ !empty($subProjectDetails) ? $subProjectDetails->sub_project_name:''; }} </a>
+							{{ !empty($subProjectDetails) ? $subProjectDetails->sub_project_name :'' }} </a>
 						<span class="kt-subheader__breadcrumbs-separator"></span>
 						<a href="#" class="kt-subheader__breadcrumbs-link">
 							{{ trans("messages.invoice_generate.invoice")}}</a>
@@ -294,7 +294,7 @@
 								  <button type="button" class="btn btn-label-success btn-bold btn_1 openSignupModel">{{ trans("messages.header.go_to_dashboard") }}</button>
 								@endif
 								@if($paymentPending == 1)
-									<button type="button" class="btn btn-brand btn-bold btn_1 order_final_payment" data-order-id="{{$orderDetails->id}}" data-toggle="modal" data-target="#kt_modal_payment_form">{{ trans("messages.invoice_generate.make_payment")}}</button>
+									<button type="button" class="btn btn-brand btn-bold btn_1 order_final_payment">{{ trans("messages.invoice_generate.make_payment")}}</button>
 								@else
 								<button type="button" class="btn btn-danger btn-bold" onclick="window.print();">{{ trans("messages.invoice_generate.print_invoice")}}</button>
 								@endif
@@ -322,38 +322,36 @@
 </div>
 
 
-<?php 
-	$PaymentMethod = Session::get('PaymentMethod'); 
-	if(!empty($PaymentMethod)){ ?>
-		<script>
-			$( document ).ready(function() {
-				$(".order_final_payment").trigger("click");
-			})
-		</script>
-<?php
-	}
-?>
-
 <script>
-$(".order_final_payment").click(function(){
-	var OrderId = "<?php echo $orderDetails->id; ?>";
-	var PaymentId = "<?php echo $paymentInvoice->id; ?>";
-	$('#loader_img').show();
-	$.ajax({
-		url: '{{ route("User.GetFinalPaymentDetails") }}',
-		type:'POST',
-		data: {'OrderId':OrderId,'PaymentId':PaymentId},
-		success: function(response){
-			$('#loader_img').hide();
-			$(".order_payment_data").html(response);
-		},
-		error: function(r){
-			$('#loader_img').hide();
-		},
+	$(".order_final_payment").click(function() {
+		// $('#loader_img').show();
+		var formData = new FormData();
+		formData.append('order_id', "<?php echo $orderDetails->id; ?>");
+		formData.append('total_payment', "<?php echo $planPrice; ?>");
+		formData.append('payment_option', "<?php echo $paymentInvoice->payment_option; ?>");
+		formData.append('reference_id', "<?php echo $orderDetails->refrence_id; ?>");
+		formData.append('payment_id', "<?php echo $paymentInvoice->id; ?>");
+	
+		$.ajax({
+			url: '{{ route("User.PayNow") }}',
+			type: 'POST',
+			data: formData,
+			dataType: 'json',
+			contentType: false,
+			cache: false,
+			processData: false,
+			success: function(r) {
+				var error_array = JSON.stringify(r);
+				var datas = JSON.parse(error_array);
+				window.location.href = datas['url'];
+			},
+			error: function(r) {
+				Swal.close();
+				$('#loader_img').hide();
+			},
+		});
 	});
 	
-})
-
 </script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.3.2/jspdf.min.js"></script>

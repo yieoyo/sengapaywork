@@ -1,0 +1,5 @@
+# add senangpay merchant_id and secret key
+# recheck template get_plan_modal.blade.php
+# adjust UsersController->saveDonation for payment processing 8362no. line
+# add database column on production sub project plan table
+# also check UsersController->GetFinalPaymentDetails

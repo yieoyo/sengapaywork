@@ -3,6 +3,7 @@
  * Home Controller
  */
 namespace App\Http\Controllers\front;
+
 use App\Http\Controllers\BaseController;
 use App\Model\User;
 use App\Model\UserVideo;
@@ -11,6 +12,7 @@ use App\Model\EmailTemplate;
 use App\Model\CmsDescription;
 use App\Model\Faq;
 use App\Model\DonationOrder;
+use Illuminate\Http\Request as HttpRequest;
 use Auth,Blade,Config,Cache,Cookie,DB,File,Hash,Input,Mail,mongoDate,Redirect,Request,Response,Session,URL,View,Validator,App;
 
 class HomeController extends BaseController {
@@ -675,5 +677,4 @@ class HomeController extends BaseController {
 			die;
 		}
 	}
-	
 }

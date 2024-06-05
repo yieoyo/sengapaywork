@@ -38,7 +38,7 @@ use App\Model\NewsLettersubscriber;
 use App\Model\Notification;
 use App\Model\AdminLanguageSetting;
 use Illuminate\Routing\Route;
-
+use Illuminate\Http\Request as HttpRequest;
 
 use Auth,Blade,Config,Cache,Cookie,DB,File,Hash,Input,Mail,mongoDate,Redirect,Request,Response,Session,URL,View,Validator,App,Billplz;
 
@@ -690,6 +690,7 @@ class UsersController extends BaseController {
 		}
 		
 		$paymentInvoice	=	DonationPayment::where('invoice_id',$invoiceId)->where('is_deleted',0)->where('is_active',1)->first();
+		
 		if(!empty($paymentInvoice)){
 			$paymentOrderId	=	$paymentInvoice->order_id;
 			$orderDetails = DonationOrder::LeftJoin('sub_projects', 'donation_orders.sub_project_id', '=', 'sub_projects.id')
@@ -814,15 +815,7 @@ class UsersController extends BaseController {
 		}else{
 			$planPrice	=	!empty($orderDetails->total_contribution)?$orderDetails->total_contribution:0;
 		}
-		
-		/* if(!empty($orderDetails->total_contribution) && $orderDetails->total_contribution > 0){
-			$planPrice = $orderDetails->total_contribution;
-		}else if(!empty($orderDetails->plan_price)){
-			$planPrice = SubProjectPlan::where('id',$orderDetails->plan_price)->where('is_deleted',0)->pluck('price');
-		}else{
-			$planPrice	=	$orderDetails->other_plan_price;
-		} */
-		
+
 		$paymentOptions	=	PaymentOption::where('is_active',1)->orderBy('id','ASC')->get();
 		
 		$userId = !empty($orderDetails) ? ($orderDetails->user_id) : 0;
@@ -857,7 +850,7 @@ class UsersController extends BaseController {
 			return Response::json($err); 
 			die;
 		}
-		if(empty(Input::get('reference_id')) && empty(Input::file('receipt')) && Input::get('payment_option') != 5){
+		if(empty(Input::get('reference_id')) && empty(Input::file('receipt')) && !in_array(Input::get('payment_option'), [11,12,13])){
 			$err					=	array();
 			$err['error']			=	1;
 			$err['message']			=	trans("Please enter reference id Or upload receipt");
@@ -871,7 +864,7 @@ class UsersController extends BaseController {
 			$orderDetails = DonationOrder::where('id',Input::get('order_id'))->first();
 			$OrderId = $orderDetails->id;
 			
-			$subProjectDetails = SubProject::select('id','project_module','customize_plan_option')->where('id',$orderDetails->sub_project_id)->first();
+			$subProjectDetails = SubProject::select('id','project_module','customize_plan_option', 'sub_project_name')->where('id',$orderDetails->sub_project_id)->first();
 			
 			if($subProjectDetails->project_module == 1){
 				if(!empty($orderDetails->plan_price)){
@@ -912,85 +905,29 @@ class UsersController extends BaseController {
 				return Response::json($err); 
 				die;
 			}
+			if (in_array(Input::get('payment_option'), [11 , 12, 13])) {
+				// senangpay detail			
+				$paymentSecretKey = Config::get("Settings.payment_secret_key"); //'af6b3ddc-5152-4852-b3b8-5605aed427a1';
+				$paymentMerchantId = Config::get("Settings.payment_merchant_id");
+
+				// look for a senangpay product using sub project plan id
+				if(Input::get('payment_option') == 11){
+					// payload for payment url
+					$detail = urldecode($subProjectDetails->sub_project_name);
+					$amount = urldecode($orderDetails->plan_price);
+					$order_id = urldecode($orderDetails->id);
+					$name = urldecode($orderDetails->full_name);
+					$email = urldecode($orderDetails->email);
+					$phone = urldecode($orderDetails->phone);
+					// Generate the hashed string
+					$hashed_string = hash_hmac('sha256', $paymentSecretKey . $detail . $amount . $order_id, $paymentSecretKey);
+
+					// Construct the payment URL
+					$paymentUrl = "https://sandbox.senangpay.my/payment/{$paymentMerchantId}?detail={$detail}&amount={$amount}&order_id={$order_id}&name={$name}&email={$email}&phone={$phone}&hash={$hashed_string}";
 			
-			if(Input::get('payment_option') == 5){
-				
-				$api_key = Config::get("Settings.payment_secret_key"); //'af6b3ddc-5152-4852-b3b8-5605aed427a1';
-				$paymentCollectionId = Config::get("Settings.payment_collection_id");
-				
-				//create collection if not found/empty
-				if(empty($paymentCollectionId)){
-					
-					//$host = 'https://www.billplz.com/api/v4/webhook_rank';
-					//$host = 'https://www.billplz.com/api/v3/collections/dfza4e2q'; 
-					$host = 'https://www.billplz.com/api/v3/collections';
-					
-					//create collection id
-					$process = curl_init($host);
-					
-					$postdata = Array(
-									  'title' => 'Hidayah Center Foundation',
-									  'logo' => ''
-									);
-					
-					curl_setopt($process, CURLOPT_USERPWD, $api_key . ":");
-					curl_setopt($process, CURLOPT_POSTFIELDS, $postdata);
-					curl_setopt($process, CURLOPT_RETURNTRANSFER, true);
-					$return = curl_exec($process);
-					$collectionArray = json_decode($return);
-					
-					//pr($collectionArray); die;
-					$paymentCollectionId = $collectionArray->id;
-					
+					// Return the URL as a JSON response
+					return Response::json(['url' => $paymentUrl]);
 				}
-				
-				
-				//bill generate
-				$hostBill = 'https://www.billplz.com/api/v3/bills';
-				$process = curl_init($hostBill);
-				
-				$totalPrice = $planPrice * 100;
-				$callbackUrl	=	WEBSITE_URL.'payment-success';
-				
-				$postdata = Array(
-								  'collection_id' => $paymentCollectionId,
-								  'email' => $orderDetails->email,
-								  'mobile' => $orderDetails->phone,
-								  'name' => $orderDetails->full_name,
-								  'amount' => $totalPrice,
-								  'callback_url' => $callbackUrl,
-								  'redirect_url' => $callbackUrl,
-								  'description' => $paymentCollectionId
-								);
-				
-				curl_setopt($process, CURLOPT_USERPWD, $api_key . ":");
-				curl_setopt($process, CURLOPT_POSTFIELDS, $postdata);
-				curl_setopt($process, CURLOPT_RETURNTRANSFER, true);
-				$response = curl_exec($process);
-				$paymentArray = json_decode($response); 
-				
-				//pr($paymentArray); die;
-				if(isset($paymentArray->error)){
-					
-					$errorType = $paymentArray->error->type;
-					$errorMessage = $paymentArray->error->message;
-					
-					$billId = "";
-					$billUrl = "";
-				}else{
-				
-					$billUrl = $paymentArray->url;
-					$billId = $paymentArray->id;
-					DonationOrder::where('id',$OrderId)->update(array('bill_id'=>$billId));
-				}
-				
-				$err					=	array();
-				$err['success']			=	2;
-				$err['billUrl']			=	$billUrl;
-				$err['message']			=	trans("Payment request send successfully.");
-				return Response::json($err); 
-				die;
-				
 			}else{
 				$receiptFile = "";
 				if(!empty(Input::file('receipt'))){
@@ -1337,23 +1274,14 @@ class UsersController extends BaseController {
 										)->whereIn('id',$allOrderIds)->where('is_deleted',0)->where('is_active',1)->orderBy('created_at','DESC')->take(10)->get();
 		if(!empty($recentAllOrders)){
 		  foreach($recentAllOrders as &$record){
-			$checkMainPaymentStatus = DonationPayment::where('order_id',$record->id)->where('is_active',1)->where('is_deleted',0)->where('payment_status',1)->pluck('payment_status');
-			if(empty($checkMainPaymentStatus)){
-				$checkMainPaymentStatus = DonationPayment::where('order_id',$record->id)->where('is_active',1)->where('is_deleted',0)->where('payment_status',3)->pluck('payment_status');
-				if(empty($checkMainPaymentStatus)){
-					$checkMainPaymentStatus = DonationPayment::where('order_id',$record->id)->where('is_active',1)->where('is_deleted',0)->where('payment_status',5)->pluck('payment_status');
-					if(empty($checkMainPaymentStatus)){
-						$checkMainPaymentStatus = DonationPayment::where('order_id',$record->id)->where('is_active',1)->where('is_deleted',0)->where('payment_status',2)->pluck('payment_status');
-					}
-				}
-			}
+			$checkMainPaymentStatus = DonationPayment::where('order_id',$record->id)->where('is_active',1)->where('is_deleted',0)->pluck('payment_status');
 			$record->main_payment_status	=	$checkMainPaymentStatus;
 			  
 		  }
 		}
 	    
 		//success status
-		$SuccessStatusIds = DonationPayment::where('is_active',1)->where('is_deleted',0)->where('payment_status',2)->lists('order_id','order_id');
+		$SuccessStatusIds = DonationPayment::where('is_active',1)->where('is_deleted',0)->where('payment_status',1)->lists('order_id','order_id');
 		$recentSuccessOrders = DonationOrder::select('donation_orders.*',
 											DB::raw("(select slug from sub_projects where id=donation_orders.sub_project_id) as sub_project_slug"),
 											DB::raw("(select sub_project_name from sub_projects where id=donation_orders.sub_project_id) as sub_project_name"),
@@ -1362,15 +1290,6 @@ class UsersController extends BaseController {
 		if(!empty($recentSuccessOrders)){
 		  foreach($recentSuccessOrders as &$record){
 			$checkMainPaymentStatus = DonationPayment::where('order_id',$record->id)->where('is_active',1)->where('is_deleted',0)->where('payment_status',1)->pluck('payment_status');
-			if(empty($checkMainPaymentStatus)){
-				$checkMainPaymentStatus = DonationPayment::where('order_id',$record->id)->where('is_active',1)->where('is_deleted',0)->where('payment_status',3)->pluck('payment_status');
-				if(empty($checkMainPaymentStatus)){
-					$checkMainPaymentStatus = DonationPayment::where('order_id',$record->id)->where('is_active',1)->where('is_deleted',0)->where('payment_status',5)->pluck('payment_status');
-					if(empty($checkMainPaymentStatus)){
-						$checkMainPaymentStatus = DonationPayment::where('order_id',$record->id)->where('is_active',1)->where('is_deleted',0)->where('payment_status',2)->pluck('payment_status');
-					}
-				}
-			}
 			$record->main_payment_status	=	$checkMainPaymentStatus;
 			  
 		  }
@@ -1378,7 +1297,7 @@ class UsersController extends BaseController {
 	  
 		
 		//pending status
-		$PendingStatusIds = DonationPayment::where('is_active',1)->where('is_deleted',0)->whereNotIn('payment_status',array(1,2,4,5,6))->lists('order_id','order_id');
+		$PendingStatusIds = DonationPayment::where('is_active',1)->where('is_deleted',0)->where('payment_status',0)->lists('order_id','order_id');
 		$recentPendingOrders = DonationOrder::select('donation_orders.*',
 											DB::raw("(select slug from sub_projects where id=donation_orders.sub_project_id) as sub_project_slug"),
 											DB::raw("(select sub_project_name from sub_projects where id=donation_orders.sub_project_id) as sub_project_name"),
@@ -1386,16 +1305,7 @@ class UsersController extends BaseController {
 										)->whereIn('id',$allOrderIds)->where('is_deleted',0)->where('is_active',1)->whereIn('id',$PendingStatusIds)->orderBy('created_at','DESC')->take(30)->get();
 		if(!empty($recentPendingOrders)){
 		  foreach($recentPendingOrders as &$record){
-			$checkMainPaymentStatus = DonationPayment::where('order_id',$record->id)->where('is_active',1)->where('is_deleted',0)->where('payment_status',1)->pluck('payment_status');
-			if(empty($checkMainPaymentStatus)){
-				$checkMainPaymentStatus = DonationPayment::where('order_id',$record->id)->where('is_active',1)->where('is_deleted',0)->where('payment_status',3)->pluck('payment_status');
-				if(empty($checkMainPaymentStatus)){
-					$checkMainPaymentStatus = DonationPayment::where('order_id',$record->id)->where('is_active',1)->where('is_deleted',0)->where('payment_status',5)->pluck('payment_status');
-					if(empty($checkMainPaymentStatus)){
-						$checkMainPaymentStatus = DonationPayment::where('order_id',$record->id)->where('is_active',1)->where('is_deleted',0)->where('payment_status',2)->pluck('payment_status');
-					}
-				}
-			}
+			$checkMainPaymentStatus = DonationPayment::where('order_id',$record->id)->where('is_active',1)->where('is_deleted',0)->where('payment_status',0)->pluck('payment_status');
 			$record->main_payment_status	=	$checkMainPaymentStatus;
 			  
 		  }
@@ -1403,7 +1313,7 @@ class UsersController extends BaseController {
 	  
 		
 		//waiting Approval status
-		$WaitingStatusIds = DonationPayment::where('is_active',1)->where('is_deleted',0)->where('payment_status',1)->lists('order_id','order_id');
+		$WaitingStatusIds = DonationPayment::where('is_active',1)->where('is_deleted',0)->where('payment_status',2)->lists('order_id','order_id');
 		$recentWaitingOrders = DonationOrder::select('donation_orders.*',
 											DB::raw("(select slug from sub_projects where id=donation_orders.sub_project_id) as sub_project_slug"),
 											DB::raw("(select sub_project_name from sub_projects where id=donation_orders.sub_project_id) as sub_project_name"),
@@ -1411,16 +1321,7 @@ class UsersController extends BaseController {
 										)->whereIn('id',$allOrderIds)->where('is_deleted',0)->where('is_active',1)->whereIn('id',$WaitingStatusIds)->orderBy('created_at','DESC')->take(30)->get();
 		if(!empty($recentWaitingOrders)){
 		  foreach($recentWaitingOrders as &$record){
-			$checkMainPaymentStatus = DonationPayment::where('order_id',$record->id)->where('is_active',1)->where('is_deleted',0)->where('payment_status',1)->pluck('payment_status');
-			if(empty($checkMainPaymentStatus)){
-				$checkMainPaymentStatus = DonationPayment::where('order_id',$record->id)->where('is_active',1)->where('is_deleted',0)->where('payment_status',3)->pluck('payment_status');
-				if(empty($checkMainPaymentStatus)){
-					$checkMainPaymentStatus = DonationPayment::where('order_id',$record->id)->where('is_active',1)->where('is_deleted',0)->where('payment_status',5)->pluck('payment_status');
-					if(empty($checkMainPaymentStatus)){
-						$checkMainPaymentStatus = DonationPayment::where('order_id',$record->id)->where('is_active',1)->where('is_deleted',0)->where('payment_status',2)->pluck('payment_status');
-					}
-				}
-			}
+			$checkMainPaymentStatus = DonationPayment::where('order_id',$record->id)->where('is_active',1)->where('is_deleted',0)->where('payment_status',2)->pluck('payment_status');
 			$record->main_payment_status	=	$checkMainPaymentStatus;
 			  
 		  }
@@ -7887,12 +7788,11 @@ class UsersController extends BaseController {
 		return View::make('front.user.book_plan',compact("subProjectDetails","dailyPlanDetails","dailyPeriodDetails","paymentMethods","projectPlans","projectPlans","seatReservationPlans","quantityPlans","sectionPlans","danaDefaultPlans","danaProperyPlans","danaProperyPriceRanges","vendorLists","selectedDonationPlanData"));
 	}
 	
-	public function getBookPlanPopup($subProjectSlug = ""){
+	public function getBookPlanPopup(HttpRequest $request, $subProjectSlug = ""){
 		$lang			=	App::getLocale();
 		if(empty($lang)){
 			$lang	=	"en";
 		}
-		
 		if(empty($subProjectSlug)){
 			Session::flash('flash_notice',  trans("Pagination Error!"));
 			return redirect()->back();
@@ -7997,14 +7897,11 @@ class UsersController extends BaseController {
 			$vendorLists =	User::select('id','full_name','short_description','slug')->where('id',$subProjectDetails->vendor)->where('user_role_id',2)->where('is_deleted',0)->where('is_active',1)->orderBy('full_name','ASC')->get();
 		}
 		
-		if(!empty(Auth::user()) && (Auth::user()->user_role_id == 1)){
-			$paymentMethods = PaymentOption::where('is_active',1)->orderBy('id','ASC')->get();
-		}else{
-			$availablePaymnetMethodArray	=	!empty($subProjectDetails->payment_method) ? explode(",",$subProjectDetails->payment_method):[];
-			$paymentMethods = PaymentOption::where('is_active',1)->whereIn('id',$availablePaymnetMethodArray)->orderBy('id','ASC')->get();
-		}
-		
-		return View::make('front.user.get_book_plan_modal',compact("subProjectDetails","dailyPlanDetails","dailyPeriodDetails","paymentMethods","projectPlans","projectPlans","seatReservationPlans","quantityPlans","sectionPlans","danaDefaultPlans","danaProperyPlans","danaProperyPriceRanges","vendorLists","selectedDonationPlanData"));
+
+		$availablePaymnetMethodArray	=	!empty($subProjectDetails->payment_method) ? explode(",",$subProjectDetails->payment_method):[];
+		$paymentMethods = PaymentOption::where('is_active',1)->whereIn('id',$availablePaymnetMethodArray)->orderBy('id','ASC')->get();
+		$parentProject = Project::findOrFail($subProjectDetails->project_id);
+		return View::make('front.user.get_book_plan_modal',compact("subProjectDetails","dailyPlanDetails","dailyPeriodDetails","paymentMethods","parentProject","projectPlans","seatReservationPlans","quantityPlans","sectionPlans","danaDefaultPlans","danaProperyPlans","danaProperyPriceRanges","vendorLists","selectedDonationPlanData"));
 	}
 	
 	public function EditBookPlan($subProjectSlug = "", $orderId	= ""){
@@ -8360,76 +8257,10 @@ class UsersController extends BaseController {
 			
 			//pr($projectModule); die;
 			
-			$api_key = Config::get("Settings.payment_secret_key"); //'af6b3ddc-5152-4852-b3b8-5605aed427a1';
-			$paymentCollectionId = Config::get("Settings.payment_collection_id");
 			
-			//create collection if not found/empty
-			if(empty($paymentCollectionId)){
-				
-				//$host = 'https://www.billplz.com/api/v4/webhook_rank';
-				//$host = 'https://www.billplz.com/api/v3/collections/dfza4e2q'; 
-				$host = 'https://www.billplz.com/api/v3/collections';
-				
-				//create collection id
-				$process = curl_init($host);
-				
-				$postdata = Array(
-								  'title' => 'Hidayah Center Foundation',
-								  'logo' => ''
-								);
-				
-				curl_setopt($process, CURLOPT_USERPWD, $api_key . ":");
-				curl_setopt($process, CURLOPT_POSTFIELDS, $postdata);
-				curl_setopt($process, CURLOPT_RETURNTRANSFER, true);
-				$return = curl_exec($process);
-				$collectionArray = json_decode($return);
-				
-				//pr($collectionArray); die;
-				$paymentCollectionId = $collectionArray->id;
-				
-			}
-			
-			
-			//bill generate
-			$hostBill = 'https://www.billplz.com/api/v3/bills';
-			$process = curl_init($hostBill);
-			$callbackUrl = WEBSITE_URL.'payment-success';
-			
-			$totalPrice = $activePlanPrice * 100;
-			
-			$postdata = Array(
-							  'collection_id' => $paymentCollectionId,
-							  'email' => $model->email,
-							 // 'mobile' => $model->phone,
-							  'name' => $model->full_name,
-							  'amount' => $totalPrice,
-							  'callback_url' => $callbackUrl,
-							  'redirect_url' => $callbackUrl,
-							  'description' => $paymentCollectionId
-							);
-			
-			curl_setopt($process, CURLOPT_USERPWD, $api_key . ":");
-			curl_setopt($process, CURLOPT_POSTFIELDS, $postdata);
-			curl_setopt($process, CURLOPT_RETURNTRANSFER, true);
-			$response = curl_exec($process);
-			$paymentArray = json_decode($response); 
-			
-			if(isset($paymentArray->error)){
-				
-				$errorType = $paymentArray->error->type;
-				$errorMessage = $paymentArray->error->message;
-				//return View::make('front.user.payment_error_page',compact("errorType","errorMessage"));
-				
-				$billId = "";
-				$billUrl = "";
-			}else{
-			
-				$billUrl = $paymentArray->url;
-				$billId = $paymentArray->id;
-			}
-			
-			$bill_invoice_id = !empty($billId)?$billId:$model->unique_donation_id; 
-			DonationOrder::where('id',$modelId)->update(array('bill_id'=>$bill_invoice_id));
+			$billUrl = '';
+			$billId ='';
+			DonationOrder::where('id',$modelId)->update(array('bill_id'=>$model->unique_donation_id));
 			//pr($billUrl); die;
 			
 			//send sms
@@ -8447,11 +8278,7 @@ class UsersController extends BaseController {
 				
 				$DonationDate = date("d/m/Y");
 				
-				if(!empty($billId)){
-					$invoice_link 			= WEBSITE_URL . "/invoice/".$billId;
-				}else{
-					$invoice_link 			= WEBSITE_URL . "/invoice/".$model->unique_donation_id;
-				}
+				$invoice_link 			= WEBSITE_URL . "/invoice/".$model->unique_donation_id;
 				
 				$payment_type = DB::table('dropdown_managers')->where('id',$model->payment_method)->pluck('name');
 				$project_name = $subProjectDetails->sub_project_name;
@@ -8464,36 +8291,34 @@ class UsersController extends BaseController {
 			
 			$this->sendOrderPlacedEmail($modelId);
 			
-			if($model->payment_method == 5){
+			if(in_array($model->payment_method,[11,12,13])){
 				//create payment transection whern online payment with status=0 and refrence_id=bill_id
-				if(!empty($billId)){
-					$donationPayment 					=  new DonationPayment;
-					$donationPayment->order_id			=  $modelId; 
-					$donationPayment->sub_project_id	=  Input::get('sub_project_id'); 
-					$donationPayment->payment_option	=  $model->payment_method; 
-					$donationPayment->invoice_id		=  !empty($billId)?$billId:$model->unique_donation_id; 
-					$donationPayment->reference_id		=  $billId; 
-					$donationPayment->receipt			=  ""; 
-					$donationPayment->amount			=  $activePlanPrice; 
-					$donationPayment->payment_status	=  "0"; 
-					$donationPayment->save();
-				}
-				
+				$donationPayment 					=  new DonationPayment;
+				$donationPayment->order_id			=  $modelId; 
+				$donationPayment->sub_project_id	=  Input::get('sub_project_id'); 
+				$donationPayment->payment_option	=  $model->payment_method; 
+				$donationPayment->invoice_id		=  $model->unique_donation_id; 
+				$donationPayment->reference_id		=  $billId; 
+				$donationPayment->receipt			=  ""; 
+				$donationPayment->amount			=  $activePlanPrice; 
+				$donationPayment->payment_status	=  "0"; 
+				$donationPayment->save();
 				$err						=	array();
 				$err['success']				=	1;
 				$err['message']				=	trans("Donation added successfully.");
 				$err['billUrl']				=	$billUrl;
-				$err['invoiceId']			=	!empty($billId)?$billId:$model->unique_donation_id; 
+				$err['invoiceId']			=	$model->unique_donation_id; 
 				$err['DonationOrderId']		=	$model->unique_donation_id;
 				return Response::json($err); 
 				die;
+
 			}else{
 				if(!empty($model->receipt) || !empty($model->refrence_id)){
 					$donationPayment 					=  new DonationPayment;
 					$donationPayment->order_id			=  $modelId; 
 					$donationPayment->sub_project_id	=  Input::get('sub_project_id'); 
 					$donationPayment->payment_option	=  $model->payment_method; 
-					$donationPayment->invoice_id		=  !empty($billId)?$billId:$model->unique_donation_id; 
+					$donationPayment->invoice_id		=  $model->unique_donation_id; 
 					$donationPayment->reference_id		=  !empty($model->refrence_id) ? $model->refrence_id:''; 
 					$donationPayment->receipt			=  !empty($model->receipt) ? $model->receipt:''; 
 					$donationPayment->amount			=  $activePlanPrice; 
@@ -8504,7 +8329,7 @@ class UsersController extends BaseController {
 					$donationPayment->order_id			=  $modelId; 
 					$donationPayment->sub_project_id	=  Input::get('sub_project_id'); 
 					$donationPayment->payment_option	=  $model->payment_method; 
-					$donationPayment->invoice_id		=  !empty($billId)?$billId:$model->unique_donation_id; 
+					$donationPayment->invoice_id		=  $model->unique_donation_id; 
 					$donationPayment->reference_id		=  !empty($model->refrence_id) ? $model->refrence_id:''; 
 					$donationPayment->receipt			=  !empty($model->receipt) ? $model->receipt:''; 
 					$donationPayment->amount			=  $activePlanPrice; 
@@ -8515,7 +8340,7 @@ class UsersController extends BaseController {
 				$err						=	array();
 				$err['success']				=	2;
 				$err['message']				=	trans("Donation added successfully.");
-				$err['invoiceId']			=	!empty($billId)?$billId:$model->unique_donation_id; 
+				$err['invoiceId']			=	$model->unique_donation_id; 
 				$err['DonationOrderId']		=	$model->unique_donation_id;
 				$err['billUrl']				=	$billUrl;
 				return Response::json($err); 

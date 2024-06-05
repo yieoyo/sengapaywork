@@ -14,7 +14,6 @@ require_once(APP_PATH.'/libraries/CustomHelper.php');
 |
 */
 	################################################################# Front Routing start here ###################################################
- 
 	Route::get('/base/uploder','BaseController@saveCkeditorImages');
 	Route::post('/base/uploder','BaseController@saveCkeditorImages'); 
 	Route::any('/base/cleardb','BaseController@clearDatabase'); 
@@ -24,7 +23,6 @@ require_once(APP_PATH.'/libraries/CustomHelper.php');
 			$exitCode = Artisan::call('view:clear');
 			return 'View cache cleared';
 		}); */
-
 		
 		Route::get('/', 'UsersController@index');
 		Route::get('/login', 'HomeController@newlogin');
@@ -37,6 +35,7 @@ require_once(APP_PATH.'/libraries/CustomHelper.php');
 		Route::get('/pages/{slug}', 'UsersController@showCms');
 		Route::get('/contact', 'HomeController@ContactUs');
 		Route::post('/contact', 'HomeController@SubmitContactUs');
+		Route::get('/senangpay/webhook', 'PaymentController@senangPayManualPaymentReturn');
 		Route::get('/about', array('as'=>'home.about_us','uses'=>'HomeController@aboutUs'));
 		Route::get('/details', array('as'=>'user.page_details','uses'=>'UsersController@PageDetails'));
 		

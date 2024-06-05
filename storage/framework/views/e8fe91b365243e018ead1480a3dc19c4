@@ -2,33 +2,33 @@
 	<div class="kt-content kt-content--fit-top  kt-grid__item kt-grid__item--fluid kt-grid kt-grid--hor" id="kt_content">
 
 		<!-- begin:: Subheader -->
-		@if(empty(Auth::user()) || (!empty(Auth::user()) && (Auth::user()->user_role_id == 2)))
-			@if(!empty($subProjectDetails->header_image) && File::exists(TEMPLATE_IMG_ROOT_PATH . $subProjectDetails->header_image))
+		<?php if(empty(Auth::user()) || (!empty(Auth::user()) && (Auth::user()->user_role_id == 2))): ?>
+			<?php if(!empty($subProjectDetails->header_image) && File::exists(TEMPLATE_IMG_ROOT_PATH . $subProjectDetails->header_image)): ?>
 				<?php $headerImage = "background: url('".TEMPLATE_IMG_URL . $subProjectDetails->header_image."'); background-size: cover;"; ?>
-			@else
+			<?php else: ?>
 				<?php $headerImage = "background-color:#2ece2f; height:120px;"; ?>
-			@endif
-		@else
+			<?php endif; ?>
+		<?php else: ?>
 				<?php $headerImage = ""; ?>
-		@endif
-		<div class="kt-subheader kt-grid__item" id="kt_subheader" style="{{ $headerImage }}">
+		<?php endif; ?>
+		<div class="kt-subheader kt-grid__item" id="kt_subheader" style="<?php echo $headerImage; ?>">
 			<div class="kt-container ">
 				<div class="kt-subheader__main">
 					<h3 class="kt-subheader__title">
 						<button class="kt-subheader__mobile-toggle kt-subheader__mobile-toggle--left" id="kt_subheader_mobile_toggle"><span></span></button>
-						{{$subProjectDetails->sub_project_name}}</h3>
+						<?php echo $subProjectDetails->sub_project_name; ?></h3>
 						
 						<div class="kt-subheader__breadcrumbs">
-							<a href="{{WEBSITE_URL}}" class="kt-subheader__breadcrumbs-home"><i class="flaticon2-shelter"></i></a>
+							<a href="<?php echo WEBSITE_URL; ?>" class="kt-subheader__breadcrumbs-home"><i class="flaticon2-shelter"></i></a>
 							<span class="kt-subheader__breadcrumbs-separator"></span>
 							<a href="#" class="kt-subheader__breadcrumbs-link">
-								{{ trans("messages.edit_book_plan.infaq") }} </a>
+								<?php echo trans("messages.edit_book_plan.infaq"); ?> </a>
 							<span class="kt-subheader__breadcrumbs-separator"></span>
-							<a href="{{ route('user.sub_project_lists',$subProjectDetails->slug) }}" class="kt-subheader__breadcrumbs-link">
-								{{$subProjectDetails->sub_project_name}}</a>
+							<a href="<?php echo route('user.sub_project_lists',$subProjectDetails->slug); ?>" class="kt-subheader__breadcrumbs-link">
+								<?php echo $subProjectDetails->sub_project_name; ?></a>
 							<span class="kt-subheader__breadcrumbs-separator"></span>
 							<span class="kt-subheader__breadcrumbs-link">
-								 {{ trans("messages.book_plan.add") }}</span>
+								 <?php echo trans("messages.book_plan.add"); ?></span>
 						</div>
 				</div>
 			</div>
@@ -38,11 +38,12 @@
 
 		<!-- begin:: Content -->
 		<div class="kt-container  kt-grid__item kt-grid__item--fluid">
-		  @if($subProjectDetails->editor_status == 1)
-			{{$subProjectDetails->editor}}
-		  @else
+		  <?php if($subProjectDetails->editor_status == 1): ?>
+			<?php echo $subProjectDetails->editor; ?>
+
+		  <?php else: ?>
 			
-		    @if($subProjectDetails->subject_type == 0 || (!empty(Auth::user()) && Auth::user()->user_role_id == 1))
+		    <?php if($subProjectDetails->subject_type == 0 || (!empty(Auth::user()) && Auth::user()->user_role_id == 1)): ?>
 			  <div class="kt-wizard-v4" id="kt_wizard_v4" data-ktwizard-state="step-first">
 
 				<!--begin: Form Wizard Nav -->
@@ -57,10 +58,12 @@
 								</div>
 								<div class="kt-wizard-v4__nav-label">
 									<div class="kt-wizard-v4__nav-label-title">
-										{{ trans("messages.book_plan.your_plan") }}
+										<?php echo trans("messages.book_plan.your_plan"); ?>
+
 									</div>
 									<div class="kt-wizard-v4__nav-label-desc">
-										{{ trans("messages.book_plan.choose_your_plan") }}
+										<?php echo trans("messages.book_plan.choose_your_plan"); ?>
+
 									</div>
 								</div>
 							</div>
@@ -75,8 +78,9 @@
 							<div class="kt-grid__item kt-grid__item--fluid kt-wizard-v4__wrapper">
 
 								<!--begin: Form Wizard Form-->
-								{{ Form::open(['role' => 'form','url' => "/",'files'=>'true', 'class' => 'kt-form','id'=>"book_plan_form"]) }}
-									<input type="hidden" name="sub_project_id" class="get_project_id" value="{{$subProjectDetails->id}}">
+								<?php echo Form::open(['role' => 'form','url' => "/",'files'=>'true', 'class' => 'kt-form','id'=>"book_plan_form"]); ?>
+
+									<input type="hidden" name="sub_project_id" class="get_project_id" value="<?php echo $subProjectDetails->id; ?>">
 									
 									<?php 
 										$selectedPlan	=	"";
@@ -207,12 +211,12 @@
 									
 									<!--begin: Form Wizard Step 1-->
 									<div class="kt-wizard-v4__content" data-ktwizard-type="step-content" data-ktwizard-state="current">
-									@if($subProjectDetails->project_module	==	1)
-										<div class="kt-heading kt-heading--md">{{ trans("messages.sub_project_detail.enter_your_favorite_plan") }}</div>
+									<?php if($subProjectDetails->project_module	==	1): ?>
+										<div class="kt-heading kt-heading--md"><?php echo trans("messages.sub_project_detail.enter_your_favorite_plan"); ?></div>
 										<div class="kt-form__section kt-form__section--first">
 											<div class="kt-wizard-v4__form">
 												<div class="form-group form-group-marginless">
-													<label>{{ trans("messages.sub_project_detail.choose_commitment_type")}}:</label>
+													<label><?php echo trans("messages.sub_project_detail.choose_commitment_type"); ?>:</label>
 													<div class="row">
 														
 														<div class="col-lg-8">
@@ -220,29 +224,35 @@
 															<label class="kt-option">
 																<span class="kt-option__control">
 																	<span class="kt-radio">
-																		{{ Form::hidden('plan_type',$selectedDonationPlanData['plan_type']) }}
-																		{{ Form::hidden('time_period',$selectedDonationPlanData['time_period']) }}
-																		{{ Form::radio('plan_project',$parentProject->id,1, ['class'=>'change_plan_type']) }}
+																		<?php echo Form::hidden('plan_type',$selectedDonationPlanData['plan_type']); ?>
+
+																		<?php echo Form::hidden('time_period',$selectedDonationPlanData['time_period']); ?>
+
+																		<?php echo Form::radio('plan_project',$parentProject->id,1, ['class'=>'change_plan_type']); ?>
+
 																		<span></span>
 																	</span>
 																</span>
 																<span class="kt-option__label">
 																	<span class="kt-option__head">
 																		<span class="kt-option__title">
-																		{{$parentProject->name}}
+																		<?php echo $parentProject->name; ?>
+
 																		</span>
 																		
 																	</span>
 																	<span class="kt-option__body">
-																		{{$subProjectDetails->sub_project_name}}
+																		<?php echo $subProjectDetails->sub_project_name; ?>
+
 																	</span>
 																</span>
 															</label>
 														</div>
 														<div class="col-lg-8">
 															<div class="input-group">
-																<div class="input-group-prepend"><span class="input-group-text">{{Currency}}</span></div>
-																{{ Form::number('plan_price', $selectedDonationPlanData['plan_price'], ['class'=>'form-control customized_plan alphabetRestriction', 'autocomplete'=>'off', 'placeholder'=> '0']) }}
+																<div class="input-group-prepend"><span class="input-group-text"><?php echo Currency; ?></span></div>
+																<?php echo Form::number('plan_price', $selectedDonationPlanData['plan_price'], ['class'=>'form-control customized_plan alphabetRestriction', 'autocomplete'=>'off', 'placeholder'=> '0']); ?>
+
 																<span class="help-inline"></span>
 															</div>
 														</div>
@@ -256,88 +266,93 @@
 											</div>
 										</div>
 												
-									@elseif($subProjectDetails->project_module	==	2)
-										@if($subProjectDetails->customize_plan_option == 1)
-										<div class="kt-heading kt-heading--md">{{ trans("messages.sub_project_detail.enter_your_favorite_plan") }}</div>
+									<?php elseif($subProjectDetails->project_module	==	2): ?>
+										<?php if($subProjectDetails->customize_plan_option == 1): ?>
+										<div class="kt-heading kt-heading--md"><?php echo trans("messages.sub_project_detail.enter_your_favorite_plan"); ?></div>
 										<div class="kt-form__section kt-form__section--first">
 											<div class="kt-wizard-v4__form">
 												<div class="form-group">
-													<label>{{ trans("messages.sub_project_detail.choose_project") }}:</label>
+													<label><?php echo trans("messages.sub_project_detail.choose_project"); ?>:</label>
 													<div class="row">
-													@if(!empty($projectPlans))
-														@foreach($projectPlans as $key=>$projectPlan)
-														@if(!empty($selectedProject))
-															@if($selectedProject == $projectPlan->id)
+													<?php if(!empty($projectPlans)): ?>
+														<?php foreach($projectPlans as $key=>$projectPlan): ?>
+														<?php if(!empty($selectedProject)): ?>
+															<?php if($selectedProject == $projectPlan->id): ?>
 																<?php $checkedPlan	=	"1"; ?>
-															@else
+															<?php else: ?>
 																<?php $checkedPlan	=	""; ?>
-															@endif
-														@elseif($key == 0)
+															<?php endif; ?>
+														<?php elseif($key == 0): ?>
 															<?php $checkedPlan	=	"1"; ?>
-														@else
+														<?php else: ?>
 															<?php $checkedPlan	=	""; ?>
-														@endif
+														<?php endif; ?>
 														<div class="col-lg-4">
-															<label class="kt-option" for="project_plans_key_{{$key}}">
+															<label class="kt-option" for="project_plans_key_<?php echo $key; ?>">
 																<span class="kt-option__control">
 																	<span class="kt-radio">
-																		{{ Form::radio('default_project_plan', $projectPlan->id,$checkedPlan, ['class'=>'default_project_plan', 'id'=>'project_plans_key_'.$key]) }}
+																		<?php echo Form::radio('default_project_plan', $projectPlan->id,$checkedPlan, ['class'=>'default_project_plan', 'id'=>'project_plans_key_'.$key]); ?>
+
 																		<span></span>
 																	</span>
 																</span>
 																<span class="kt-option__label">
 																	<span class="kt-option__head">
-																		<span class="kt-option__title project_plans_key_{{$key}}">
-																			{{$projectPlan->title}}
+																		<span class="kt-option__title project_plans_key_<?php echo $key; ?>">
+																			<?php echo $projectPlan->title; ?>
+
 																		</span>
 
 																	</span>
 																	<span class="kt-option__body">
-																		{{$projectPlan->description}}
+																		<?php echo $projectPlan->description; ?>
+
 																	</span>
 																</span>
 															</label>
 														</div>
-														@endforeach
-													@endif
+														<?php endforeach; ?>
+													<?php endif; ?>
 													
 													</div>
 												</div>
 												<div class="form-group">
-													<label>{{ trans('messages.dashboard.total_contribution') }} :</label>
+													<label><?php echo trans('messages.dashboard.total_contribution'); ?> :</label>
 													<div class="input-group">
-														<div class="input-group-prepend"><span class="input-group-text">{{ trans("messages.sub_project_detail.rm") }}</span></div>
-														{{ Form::number('total_contribution', !empty($totalContributons)?$totalContributons:0, ['class'=>'form-control','autocomplete'=>'off','min'=>'1']) }}
+														<div class="input-group-prepend"><span class="input-group-text"><?php echo trans("messages.sub_project_detail.rm"); ?></span></div>
+														<?php echo Form::number('total_contribution', !empty($totalContributons)?$totalContributons:0, ['class'=>'form-control','autocomplete'=>'off','min'=>'1']); ?>
+
 													</div>
 												</div>
 											</div>
 										</div>
 										
-										@elseif($subProjectDetails->customize_plan_option == 2)
-											@if(!empty($seatReservationPlans))
-											<div class="kt-heading kt-heading--md">{{$subProjectDetails->seat_reservation_main_title}}</div>
+										<?php elseif($subProjectDetails->customize_plan_option == 2): ?>
+											<?php if(!empty($seatReservationPlans)): ?>
+											<div class="kt-heading kt-heading--md"><?php echo $subProjectDetails->seat_reservation_main_title; ?></div>
 												<div class="kt-form__section kt-form__section--first">
 												<div class="kt-wizard-v4_form">
-												@foreach($seatReservationPlans as $key=>$seatReservationPlan)
-													<div class="kt-heading kt-heading--md seat_reservation_title_blk" rel="{{$key}}">{{$seatReservationPlan->description}}</div>
-													@if(!empty($seatReservationPlan->ReservationSeats))
-													@foreach($seatReservationPlan->ReservationSeats as $seatDetails)
-													{{ Form::hidden('SeatReservation['.$seatDetails->id.'][seat_subtitle_id]', $seatReservationPlan->id, ['class'=>'']) }}
+												<?php foreach($seatReservationPlans as $key=>$seatReservationPlan): ?>
+													<div class="kt-heading kt-heading--md seat_reservation_title_blk" rel="<?php echo $key; ?>"><?php echo $seatReservationPlan->description; ?></div>
+													<?php if(!empty($seatReservationPlan->ReservationSeats)): ?>
+													<?php foreach($seatReservationPlan->ReservationSeats as $seatDetails): ?>
+													<?php echo Form::hidden('SeatReservation['.$seatDetails->id.'][seat_subtitle_id]', $seatReservationPlan->id, ['class'=>'']); ?>
+
 													<div class="form-group row">
-														<label class="col-form-label col-lg-4 col-sm-12"><span class="seat_reservation_name_price_{{$key}}" rel="{{$seatDetails->id}}" data-price="{{$seatDetails->seat_price}}">{{$seatDetails->seat_name}} ({{Currency}}{{$seatDetails->seat_price}})</span><br/> {{$seatDetails->seat_description}}</label>
+														<label class="col-form-label col-lg-4 col-sm-12"><span class="seat_reservation_name_price_<?php echo $key; ?>" rel="<?php echo $seatDetails->id; ?>" data-price="<?php echo $seatDetails->seat_price; ?>"><?php echo $seatDetails->seat_name; ?> (<?php echo Currency; ?><?php echo $seatDetails->seat_price; ?>)</span><br/> <?php echo $seatDetails->seat_description; ?></label>
 														<div class="col-lg-4 col-sm-12">
 															<div class="input-group flex-nowrap mb-3">
 																<div class="input-group-prepend">
 																	<span class="input-group-text" id="basic-addon1"><i class="la la-user"></i></span>
 																</div>
-																<select name="SeatReservation[{{$seatDetails->id}}][total_seat]" class="form-control setSelection">
-																	<option value="">Bil Belian {{$seatDetails->seat_name}}</option>
+																<select name="SeatReservation[<?php echo $seatDetails->id; ?>][total_seat]" class="form-control setSelection">
+																	<option value="">Bil Belian <?php echo $seatDetails->seat_name; ?></option>
 																	<?php for($seatNumber = 1; $seatNumber < $seatDetails->seat_max_unit; $seatNumber++){ ?>
-																	@if(!empty($seatDetails->total_booked_seat) && ($seatDetails->total_booked_seat == $seatNumber))
-																		<option selected value="{{$seatNumber}}">{{$seatNumber}}</option>
-																	@else
-																		<option value="{{$seatNumber}}">{{$seatNumber}}</option>
-																	@endif
+																	<?php if(!empty($seatDetails->total_booked_seat) && ($seatDetails->total_booked_seat == $seatNumber)): ?>
+																		<option selected value="<?php echo $seatNumber; ?>"><?php echo $seatNumber; ?></option>
+																	<?php else: ?>
+																		<option value="<?php echo $seatNumber; ?>"><?php echo $seatNumber; ?></option>
+																	<?php endif; ?>
 																	<?php } ?>
 																</select>
 															</div>
@@ -347,24 +362,24 @@
 																<div class="input-group-prepend">
 																	<span class="input-group-text" id="basic-addon1"><i class="la la-user"></i></span>
 																</div>
-																<select name="SeatReservation[{{$seatDetails->id}}][total_attendance]" class="form-control totalAttendance">
-																	<option value="">{{ trans("messages.sub_project_detail.bill_present") }}</option>
+																<select name="SeatReservation[<?php echo $seatDetails->id; ?>][total_attendance]" class="form-control totalAttendance">
+																	<option value=""><?php echo trans("messages.sub_project_detail.bill_present"); ?></option>
 																	<?php 
 																	if(!empty($seatDetails->total_booked_seat)){
 																	for($bookedSeatNumber = 1; $bookedSeatNumber <= $seatDetails->total_booked_seat; $bookedSeatNumber++){ ?>
-																	@if(!empty($seatDetails->total_attendance) && ($seatDetails->total_attendance == $bookedSeatNumber))
-																		<option selected value="{{$bookedSeatNumber}}">{{$bookedSeatNumber}}</option>
-																	@else
-																		<option value="{{$bookedSeatNumber}}">{{$bookedSeatNumber}}</option>
-																	@endif
+																	<?php if(!empty($seatDetails->total_attendance) && ($seatDetails->total_attendance == $bookedSeatNumber)): ?>
+																		<option selected value="<?php echo $bookedSeatNumber; ?>"><?php echo $bookedSeatNumber; ?></option>
+																	<?php else: ?>
+																		<option value="<?php echo $bookedSeatNumber; ?>"><?php echo $bookedSeatNumber; ?></option>
+																	<?php endif; ?>
 																	<?php } } ?>
 																</select>
 															</div>
 														</div>
 														
 													</div>
-													@endforeach
-													@endif
+													<?php endforeach; ?>
+													<?php endif; ?>
 													<?php /* <div class="form-group row">
 														<label class="col-form-label col-lg-4 col-sm-12">Meja Emas (RM 5000.00)<br/>Nota:1 Meja mempunyai 10 Kerusi</label>
 														<div class="col-lg-4 col-sm-12">
@@ -511,105 +526,112 @@
 													
 													<div class="kt-separator kt-separator--border-dashed kt-separator--portlet-fit kt-separator--space-lg"></div>
 													
-												@endforeach
+												<?php endforeach; ?>
 												
-												@if($subProjectDetails->seat_reservation_menual_contribution == 1)
-													<div class="kt-heading kt-heading--md reservation_title_2">{{$subProjectDetails->seat_reservation_main_title_2}}</div>
+												<?php if($subProjectDetails->seat_reservation_menual_contribution == 1): ?>
+													<div class="kt-heading kt-heading--md reservation_title_2"><?php echo $subProjectDetails->seat_reservation_main_title_2; ?></div>
 													<div class="form-group"></div>
 													<div class="form-group">
-														<label>{{ trans('messages.dashboard.total_contributions') }}:</label>
+														<label><?php echo trans('messages.dashboard.total_contributions'); ?>:</label>
 														<div class="input-group">
-															<div class="input-group-prepend"><span class="input-group-text">{{Currency}}</span></div>
-															{{ Form::text('total_contribution', !empty($totalContributons)?$totalContributons:0, ['class'=>'form-control total_contribution_amt','autocomplete'=>'off', 'placeholder'=>'']) }}
+															<div class="input-group-prepend"><span class="input-group-text"><?php echo Currency; ?></span></div>
+															<?php echo Form::text('total_contribution', !empty($totalContributons)?$totalContributons:0, ['class'=>'form-control total_contribution_amt','autocomplete'=>'off', 'placeholder'=>'']); ?>
+
 															<span class="help-inline"></span>
 														</div>
 													</div>
-												@endif
+												<?php endif; ?>
 												
 												</div>
 											</div>
-											@endif
-										@elseif($subProjectDetails->customize_plan_option == 3)
-										@if(!empty($quantityPlans))
-											<div class="kt-heading kt-heading--md">{{ trans("messages.sub_project_detail.enter_your_favorite_plan") }}</div>
+											<?php endif; ?>
+										<?php elseif($subProjectDetails->customize_plan_option == 3): ?>
+										<?php if(!empty($quantityPlans)): ?>
+											<div class="kt-heading kt-heading--md"><?php echo trans("messages.sub_project_detail.enter_your_favorite_plan"); ?></div>
 											<div class="kt-form__section kt-form__section--first">
 											<div class="kt-wizard-v4__form">
 												<div class="form-group">
 													<div class="row">
-														@foreach($quantityPlans as $key=>$quantityPlan)
-															@if(!empty($selectedProject))
-																@if($selectedProject == $quantityPlan->id)
+														<?php foreach($quantityPlans as $key=>$quantityPlan): ?>
+															<?php if(!empty($selectedProject)): ?>
+																<?php if($selectedProject == $quantityPlan->id): ?>
 																	<?php $checkedQuantityPlan	=	"1"; ?>
-																@else
+																<?php else: ?>
 																	<?php $checkedQuantityPlan	=	""; ?>
-																@endif
-															@elseif($key == 0)
+																<?php endif; ?>
+															<?php elseif($key == 0): ?>
 																<?php $checkedQuantityPlan = 1; ?>
-															@else
+															<?php else: ?>
 																<?php $checkedQuantityPlan = ""; ?>
-															@endif
+															<?php endif; ?>
 															<div class="col-lg-6">
 																<label class="kt-option">
 																	<span class="kt-option__control">
 																		<span class="kt-radio">
-																			{{ Form::radio('quantity_project_plan', $quantityPlan->id,$checkedQuantityPlan, ['class'=>'quantity_project_plan', 'id'=>'quantity_plans_key_'.$key, 'data-quantity-plan-price'=>$quantityPlan->price]) }}
+																			<?php echo Form::radio('quantity_project_plan', $quantityPlan->id,$checkedQuantityPlan, ['class'=>'quantity_project_plan', 'id'=>'quantity_plans_key_'.$key, 'data-quantity-plan-price'=>$quantityPlan->price]); ?>
+
 																			<span></span>
 																		</span>
 																	</span>
 																	<span class="kt-option__label">
-																		<span class="kt-option__head quantity_plans_key_{{$key}}">
+																		<span class="kt-option__head quantity_plans_key_<?php echo $key; ?>">
 																			<span class="kt-option__title">
-																				{{$quantityPlan->plan_title}}
+																				<?php echo $quantityPlan->plan_title; ?>
+
 																			</span>
 																			<span class="kt-option__focus">
-																				{{Currency}}{{$quantityPlan->price}}/Unit
+																				<?php echo Currency; ?><?php echo $quantityPlan->price; ?>/Unit
 																			</span>
 																		</span>
 																		<span class="kt-option__body">
-																			{{$quantityPlan->plan_description}}
+																			<?php echo $quantityPlan->plan_description; ?>
+
 																		</span>
 																	</span>
 																</label>
 															</div>
-														@endforeach
+														<?php endforeach; ?>
 															
 													</div>
 												</div>
 												<div class="form-group">
-													<label>{{ trans("messages.sub_project_detail.quantity") }}:</label>
-													{{ Form::number('quantity', !empty($selectedProjectQuantity)?$selectedProjectQuantity:1, ['class'=>'form-control plan_quantity','autocomplete'=>'off', 'placeholder'=>'', 'min'=>1]) }}
+													<label><?php echo trans("messages.sub_project_detail.quantity"); ?>:</label>
+													<?php echo Form::number('quantity', !empty($selectedProjectQuantity)?$selectedProjectQuantity:1, ['class'=>'form-control plan_quantity','autocomplete'=>'off', 'placeholder'=>'', 'min'=>1]); ?>
+
 												</div>
 												<div class="form-group">
-													<label>{{ trans('messages.dashboard.total_contributions') }} :</label>
+													<label><?php echo trans('messages.dashboard.total_contributions'); ?> :</label>
 													<div class="input-group">
-														<div class="input-group-prepend"><span class="input-group-text">{{Currency}}</span></div>
-														{{ Form::text('total_contribution', !empty($totalContributons)?$totalContributons:0, ['class'=>'form-control total_contribution','autocomplete'=>'off', 'placeholder'=>'', 'aria-describedby'=>'basic-addon1','readonly'=>true]) }}
+														<div class="input-group-prepend"><span class="input-group-text"><?php echo Currency; ?></span></div>
+														<?php echo Form::text('total_contribution', !empty($totalContributons)?$totalContributons:0, ['class'=>'form-control total_contribution','autocomplete'=>'off', 'placeholder'=>'', 'aria-describedby'=>'basic-addon1','readonly'=>true]); ?>
+
 													</div>
 												</div>
 
 											</div>
 											</div>
-										@endif
+										<?php endif; ?>
 										
-										@elseif($subProjectDetails->customize_plan_option == 4)
-										@if(!empty($sectionPlans))
+										<?php elseif($subProjectDetails->customize_plan_option == 4): ?>
+										<?php if(!empty($sectionPlans)): ?>
 											<?php $counter = 0; ?>
-											<div class="kt-heading kt-heading--md">{{ trans("messages.sub_project_detail.enter_your_favorite_plan") }} </div>
+											<div class="kt-heading kt-heading--md"><?php echo trans("messages.sub_project_detail.enter_your_favorite_plan"); ?> </div>
 											<div class="kt-form__section kt-form__section--first">
 												<div class="kt-wizard-v4__form get_dynamic_participate_block">
 
-													@if(!empty($participateArray))
-													@foreach($participateArray as $participateRecord)
-													<section class="form-group row delete_more_section_item_{{$counter}}" rel="{{$counter}}">
+													<?php if(!empty($participateArray)): ?>
+													<?php foreach($participateArray as $participateRecord): ?>
+													<section class="form-group row delete_more_section_item_<?php echo $counter; ?>" rel="<?php echo $counter; ?>">
 														<div data-repeater-list="" class="col-lg-12">
 															<div data-repeater-item="" class="form-group row align-items-center">
 																<div class="col-md-5">
 																	<div class="kt-form__group--inline">
 																		<div class="kt-form__label">
-																			<label>{{ trans("messages.sub_project_detail.participant_name") }}:</label>
+																			<label><?php echo trans("messages.sub_project_detail.participant_name"); ?>:</label>
 																		</div>
 																		<div class="kt-form__control">
-																			{{ Form::text('Section['.$counter.'][name]', !empty($participateRecord['name'])?$participateRecord['name']:'', ['class'=>'form-control section_name', 'autocomplete'=>'off', 'placeholder'=>trans("messages.sub_project_detail.enter_participant_name"), 'aria-describedby'=>'emailHelp']) }}
+																			<?php echo Form::text('Section['.$counter.'][name]', !empty($participateRecord['name'])?$participateRecord['name']:'', ['class'=>'form-control section_name', 'autocomplete'=>'off', 'placeholder'=>trans("messages.sub_project_detail.enter_participant_name"), 'aria-describedby'=>'emailHelp']); ?>
+
 																		</div>
 																	</div>
 																	<div class="d-md-none kt-margin-b-10"> </div>
@@ -618,23 +640,23 @@
 																<div class="col-md-5">
 																	<div class="kt-form__group--inline">
 																		<div class="kt-form__label">
-																			<label class="kt-label m-label--single">{{ trans("messages.sub_project_detail.parts_tails") }}:</label>
+																			<label class="kt-label m-label--single"><?php echo trans("messages.sub_project_detail.parts_tails"); ?>:</label>
 																		</div>
 																		<div class="kt-form__control">
-																			<select name="Section[{{$counter}}][section_plan]" class="form-control" id="exampleSelect1">
-																				<option>{{ trans("messages.sub_project_detail.select_section") }} </option>
-																				@foreach($sectionPlans as $sectionPlan)
-																				@if(!empty($participateRecord['section_plan']))
-																					@if($participateRecord['section_plan'] == $sectionPlan->id)
+																			<select name="Section[<?php echo $counter; ?>][section_plan]" class="form-control" id="exampleSelect1">
+																				<option><?php echo trans("messages.sub_project_detail.select_section"); ?> </option>
+																				<?php foreach($sectionPlans as $sectionPlan): ?>
+																				<?php if(!empty($participateRecord['section_plan'])): ?>
+																					<?php if($participateRecord['section_plan'] == $sectionPlan->id): ?>
 																						<?php $selectedSectionPlan = "selected"; ?>
-																					@else
+																					<?php else: ?>
 																						<?php $selectedSectionPlan = ""; ?>
-																					@endif
-																				@else
+																					<?php endif; ?>
+																				<?php else: ?>
 																					<?php $selectedSectionPlan = ""; ?>
-																				@endif
-																				<option value="{{$sectionPlan->id}}" data-plan-price="{{$sectionPlan->price}}" {{$selectedSectionPlan}} >{{$sectionPlan->section_name}} - {{Currency . $sectionPlan->price}}</option>
-																				@endforeach
+																				<?php endif; ?>
+																				<option value="<?php echo $sectionPlan->id; ?>" data-plan-price="<?php echo $sectionPlan->price; ?>" <?php echo $selectedSectionPlan; ?> ><?php echo $sectionPlan->section_name; ?> - <?php echo Currency . $sectionPlan->price; ?></option>
+																				<?php endforeach; ?>
 																			</select>
 
 																		</div>
@@ -642,34 +664,36 @@
 																	<div class="d-md-none kt-margin-b-10"> </div>
 																</div>
 
-																@if($counter != 0)
+																<?php if($counter != 0): ?>
 																	<div class="col-md-2">
 																		<div class="kt-form__label">
 																			<label class="kt-label m-label--single"> </label>
 																		</div>
-																		<button type="button" onclick="deleteMoreSectionItem({{$counter}})" class="btn btn-label-danger btn-bold">
-																			<i class="la la-trash-o"></i>{{ trans("messages.sub_project_detail.delete") }}
+																		<button type="button" onclick="deleteMoreSectionItem(<?php echo $counter; ?>)" class="btn btn-label-danger btn-bold">
+																			<i class="la la-trash-o"></i><?php echo trans("messages.sub_project_detail.delete"); ?>
+
 																		</button>
 																	</div>
-																@endif
+																<?php endif; ?>
 															</div>
 
 
 														</div>
 													</section>
 													<?php $counter++; ?>
-													@endforeach
-													@else
-													<section class="form-group row delete_more_section_item_{{$counter}}" rel="{{$counter}}">
+													<?php endforeach; ?>
+													<?php else: ?>
+													<section class="form-group row delete_more_section_item_<?php echo $counter; ?>" rel="<?php echo $counter; ?>">
 														<div data-repeater-list="" class="col-lg-12">
 															<div data-repeater-item="" class="form-group row align-items-center">
 																<div class="col-md-5">
 																	<div class="kt-form__group--inline">
 																		<div class="kt-form__label">
-																			<label>{{ trans("messages.sub_project_detail.participant_name") }}:</label>
+																			<label><?php echo trans("messages.sub_project_detail.participant_name"); ?>:</label>
 																		</div>
 																		<div class="kt-form__control">
-																			{{ Form::text('Section['.$counter.'][name]', '', ['class'=>'form-control','autocomplete'=>'off', 'placeholder'=>trans("messages.sub_project_detail.enter_participant_name"), 'aria-describedby'=>'emailHelp']) }}
+																			<?php echo Form::text('Section['.$counter.'][name]', '', ['class'=>'form-control','autocomplete'=>'off', 'placeholder'=>trans("messages.sub_project_detail.enter_participant_name"), 'aria-describedby'=>'emailHelp']); ?>
+
 																			<span class="help-inline form-text section_name_error"></span>
 																		</div>
 																	</div>
@@ -679,14 +703,14 @@
 																<div class="col-md-5">
 																	<div class="kt-form__group--inline">
 																		<div class="kt-form__label">
-																			<label class="kt-label m-label--single">{{ trans("messages.sub_project_detail.parts_tails") }}:</label>
+																			<label class="kt-label m-label--single"><?php echo trans("messages.sub_project_detail.parts_tails"); ?>:</label>
 																		</div>
 																		<div class="kt-form__control">
-																			<select name="Section[{{$counter}}][section_plan]" class="form-control" id="exampleSelect1">
-																				<option value="">{{ trans("messages.sub_project_detail.select_section") }} </option>
-																				@foreach($sectionPlans as $sectionPlan)
-																				<option value="{{$sectionPlan->id}}" data-plan-price="{{$sectionPlan->price}}">{{$sectionPlan->section_name}} - {{Currency . $sectionPlan->price}}</option>
-																				@endforeach
+																			<select name="Section[<?php echo $counter; ?>][section_plan]" class="form-control" id="exampleSelect1">
+																				<option value=""><?php echo trans("messages.sub_project_detail.select_section"); ?> </option>
+																				<?php foreach($sectionPlans as $sectionPlan): ?>
+																				<option value="<?php echo $sectionPlan->id; ?>" data-plan-price="<?php echo $sectionPlan->price; ?>"><?php echo $sectionPlan->section_name; ?> - <?php echo Currency . $sectionPlan->price; ?></option>
+																				<?php endforeach; ?>
 																			</select>
 																			<span class="help-inline form-text section_plan_error"></span>
 																		</div>
@@ -694,122 +718,126 @@
 																	<div class="d-md-none kt-margin-b-10"> </div>
 																</div>
 
-																@if($counter != 0)
+																<?php if($counter != 0): ?>
 																	<div class="col-md-2">
 																		<div class="kt-form__label">
 																			<label class="kt-label m-label--single"> </label>
 																		</div>
-																		<button type="button" onclick="deleteMoreSectionItem({{$counter}})" class="btn btn-label-danger btn-bold"><i class="la la-trash-o"></i>{{ trans("messages.sub_project_detail.delete") }}</button>
+																		<button type="button" onclick="deleteMoreSectionItem(<?php echo $counter; ?>)" class="btn btn-label-danger btn-bold"><i class="la la-trash-o"></i><?php echo trans("messages.sub_project_detail.delete"); ?></button>
 																	</div>
-																@endif
+																<?php endif; ?>
 															</div>
 
 														</div>
 													</section>
-													@endif
+													<?php endif; ?>
 												</div>
-												@if($subProjectDetails->is_multiple_participate == 1)
+												<?php if($subProjectDetails->is_multiple_participate == 1): ?>
 													<div class="form-group row">
 														<div class="col-lg-4">
-															<button type="button" onclick="addMoreSectionParticipate()" class="btn btn-bold btn-sm btn-label-brand btn_loader"><span class="flaticon2-plus">&nbsp;&nbsp;</span> {{ trans('messages.sub_project_detail.add_participant') }}</button>
+															<button type="button" onclick="addMoreSectionParticipate()" class="btn btn-bold btn-sm btn-label-brand btn_loader"><span class="flaticon2-plus">&nbsp;&nbsp;</span> <?php echo trans('messages.sub_project_detail.add_participant'); ?></button>
 														</div>
 													</div>
-												@endif
+												<?php endif; ?>
 											</div>
-										@endif
-										@endif
+										<?php endif; ?>
+										<?php endif; ?>
 									
-									@elseif($subProjectDetails->project_module	==	3)
-										@if($subProjectDetails->customize_plan_option  == 5)
-											@if(!empty($danaDefaultPlans))
-											<div class="kt-heading kt-heading--md">{{ trans("messages.sub_project_detail.enter_your_favorite_plan") }} </div>
+									<?php elseif($subProjectDetails->project_module	==	3): ?>
+										<?php if($subProjectDetails->customize_plan_option  == 5): ?>
+											<?php if(!empty($danaDefaultPlans)): ?>
+											<div class="kt-heading kt-heading--md"><?php echo trans("messages.sub_project_detail.enter_your_favorite_plan"); ?> </div>
 											<div class="kt-form__section kt-form__section--first">
 												<div class="kt-wizard-v4__form">
 													<div class="form-group">
 														<div class="row">
-															@foreach($danaDefaultPlans as $key=>$danaDefaultPlan)
-															@if(!empty($selectedProject))
-																@if($selectedProject == $danaDefaultPlan->id)
+															<?php foreach($danaDefaultPlans as $key=>$danaDefaultPlan): ?>
+															<?php if(!empty($selectedProject)): ?>
+																<?php if($selectedProject == $danaDefaultPlan->id): ?>
 																	<?php $checkedPlan	=	"1"; ?>
-																@else
+																<?php else: ?>
 																	<?php $checkedPlan	=	""; ?>
-																@endif
-															@else
-																@if($danaDefaultPlan->is_primary == 1)
+																<?php endif; ?>
+															<?php else: ?>
+																<?php if($danaDefaultPlan->is_primary == 1): ?>
 																	<?php $checkedPlan	=	"1"; ?>
-																@else
+																<?php else: ?>
 																	<?php $checkedPlan	=	""; ?>
-																@endif
-															@endif
+																<?php endif; ?>
+															<?php endif; ?>
 															<div class="col-lg-6">
 																<label class="kt-option">
 																	<span class="kt-option__control">
 																		<span class="kt-radio">
-																			{{ Form::radio('dana_default_project_plan', $danaDefaultPlan->id,$checkedPlan, ['class'=>'dana_default_project_plan', 'id'=>'dana_project_plans_key_'.$key]) }}
+																			<?php echo Form::radio('dana_default_project_plan', $danaDefaultPlan->id,$checkedPlan, ['class'=>'dana_default_project_plan', 'id'=>'dana_project_plans_key_'.$key]); ?>
+
 																			<span></span>
 																		</span>
 																	</span>
 																	<span class="kt-option__label">
 																		<span class="kt-option__head">
-																			<span class="kt-option__title dana_project_plans_key_{{$key}}">
-																				{{$danaDefaultPlan->title}} 
+																			<span class="kt-option__title dana_project_plans_key_<?php echo $key; ?>">
+																				<?php echo $danaDefaultPlan->title; ?> 
 																			</span>
 																			<span class="kt-option__focus">
-																				{{Currency}}{{$danaDefaultPlan->amount}} 
+																				<?php echo Currency; ?><?php echo $danaDefaultPlan->amount; ?> 
 																			</span>
 																		</span>
 																		
 																	</span>
 																</label>
 															</div>
-															@endforeach
+															<?php endforeach; ?>
 														</div>
 													</div>
 												</div>
 											</div>
-											@endif 
+											<?php endif; ?> 
 											
-										@elseif($subProjectDetails->customize_plan_option  == 6)
-											@if(!empty($danaProperyPlans))
-											<div class="kt-heading kt-heading--md"> {{ trans("messages.sub_project_detail.select_your_will_detail") }} </div>
-											<p> <span class="kt-option__title"> {{ trans("messages.sub_project_detail.property_sale") }} </span> </p>
+										<?php elseif($subProjectDetails->customize_plan_option  == 6): ?>
+											<?php if(!empty($danaProperyPlans)): ?>
+											<div class="kt-heading kt-heading--md"> <?php echo trans("messages.sub_project_detail.select_your_will_detail"); ?> </div>
+											<p> <span class="kt-option__title"> <?php echo trans("messages.sub_project_detail.property_sale"); ?> </span> </p>
 											<div class="row">
-												@foreach($danaProperyPlans as $key=>$danaProperyPlan)
-												@if(!empty($selectedProject))
-													@if($selectedProject == $danaProperyPlan->id)
+												<?php foreach($danaProperyPlans as $key=>$danaProperyPlan): ?>
+												<?php if(!empty($selectedProject)): ?>
+													<?php if($selectedProject == $danaProperyPlan->id): ?>
 														<?php $checkedPlan	=	"1"; ?>
-													@else
+													<?php else: ?>
 														<?php $checkedPlan	=	""; ?>
-													@endif
-												@else
-													@if($key == 0)
+													<?php endif; ?>
+												<?php else: ?>
+													<?php if($key == 0): ?>
 														<?php $checkedPlan	=	"1"; ?>
-													@else
+													<?php else: ?>
 														<?php $checkedPlan	=	""; ?>
-													@endif
-												@endif
+													<?php endif; ?>
+												<?php endif; ?>
 												
 												<div class="col-lg-4">
 													<label class="kt-option">
 														<span class="kt-option__control">
 															<span class="kt-radio">
-																{{ Form::radio('dana_property_plan', $danaProperyPlan->id,$checkedPlan, ['class'=>'dana_property_plan', 'id'=>'dana_property_plans_key_'.$key]) }}
+																<?php echo Form::radio('dana_property_plan', $danaProperyPlan->id,$checkedPlan, ['class'=>'dana_property_plan', 'id'=>'dana_property_plans_key_'.$key]); ?>
+
 																<span></span>
 															</span>
 														</span>
 														<span class="kt-option__label">
 															<span class="kt-option__head">
-																<span class="kt-option__title dana_property_plans_key_{{$key}}">
-																	{{$danaProperyPlan->title}}
+																<span class="kt-option__title dana_property_plans_key_<?php echo $key; ?>">
+																	<?php echo $danaProperyPlan->title; ?>
+
 																</span>
 															</span>
 															<span class="kt-option__body">
-																{{$danaProperyPlan->description}}
+																<?php echo $danaProperyPlan->description; ?>
+
 															</span>
 														</span>
 													</label>
 												</div>
-												@endforeach
+												<?php endforeach; ?>
 												
 												<?php /* @if(!empty($danaProperyPriceRanges))
 												<div class="col-lg-4">
@@ -837,83 +865,89 @@
 											</div>
 
 											<div class="form-group">
-												<p style="padding-top: 25px"><label class="col-12 col-form-label">{{ trans("messages.sub_project_detail.estimated_price") }} :</label></p>
+												<p style="padding-top: 25px"><label class="col-12 col-form-label"><?php echo trans("messages.sub_project_detail.estimated_price"); ?> :</label></p>
 												<div class="col-12">
 													<div class="input-group">
-													<div class="input-group-prepend"><span class="input-group-text">{{Currency}}</span></div>
-													{{ Form::text('total_contribution', !empty($totalContributons)?$totalContributons:0, ['class'=>'form-control','autocomplete'=>'off', 'placeholder'=>'', 'aria-describedby'=>'basic-addon1']) }}
+													<div class="input-group-prepend"><span class="input-group-text"><?php echo Currency; ?></span></div>
+													<?php echo Form::text('total_contribution', !empty($totalContributons)?$totalContributons:0, ['class'=>'form-control','autocomplete'=>'off', 'placeholder'=>'', 'aria-describedby'=>'basic-addon1']); ?>
+
 													</div>
 												</div>
 											</div>
 
 											<div class="form-group ">
-												<p style="padding-top: 25px"><label class="col-12 col-form-label">{{ trans("messages.sub_project_detail.additional_information") }}</label></p>
+												<p style="padding-top: 25px"><label class="col-12 col-form-label"><?php echo trans("messages.sub_project_detail.additional_information"); ?></label></p>
 												<div class="col-12">
-													{{ Form::textarea('extra_note', !empty($extra_note)?$extra_note:'', ['class'=>'form-control']) }}
+													<?php echo Form::textarea('extra_note', !empty($extra_note)?$extra_note:'', ['class'=>'form-control']); ?>
+
 												</div>
 											</div>
 											
-											@endif
+											<?php endif; ?>
 											
-										@elseif($subProjectDetails->customize_plan_option  == 7)
-											@if(!empty($vendorLists))
-											<div class="kt-heading kt-heading--md"> {{ trans("messages.sub_project_detail.select_your_vendor") }} </div>
+										<?php elseif($subProjectDetails->customize_plan_option  == 7): ?>
+											<?php if(!empty($vendorLists)): ?>
+											<div class="kt-heading kt-heading--md"> <?php echo trans("messages.sub_project_detail.select_your_vendor"); ?> </div>
 											<div class="row">
-												@foreach($vendorLists as $key=>$vendorList)
-												@if(!empty($selectedProject))
-													@if($selectedProject == $vendorList->id)
+												<?php foreach($vendorLists as $key=>$vendorList): ?>
+												<?php if(!empty($selectedProject)): ?>
+													<?php if($selectedProject == $vendorList->id): ?>
 														<?php $checkedPlan	=	"1"; ?>
-													@else
+													<?php else: ?>
 														<?php $checkedPlan	=	""; ?>
-													@endif
-												@else
-													@if($key == 0)
+													<?php endif; ?>
+												<?php else: ?>
+													<?php if($key == 0): ?>
 														<?php $checkedPlan	=	"1"; ?>
-													@else
+													<?php else: ?>
 														<?php $checkedPlan	=	""; ?>
-													@endif
-												@endif
+													<?php endif; ?>
+												<?php endif; ?>
 												
 												<div class="col-lg-4">
 													<label class="kt-option">
 														<span class="kt-option__control">
 															<span class="kt-radio">
-																{{ Form::radio('dana_vendor', $vendorList->id,$checkedPlan, ['class'=>'dana_vendor', 'id'=>'dana_vendor_key_'.$key]) }}
+																<?php echo Form::radio('dana_vendor', $vendorList->id,$checkedPlan, ['class'=>'dana_vendor', 'id'=>'dana_vendor_key_'.$key]); ?>
+
 																<span></span>
 															</span>
 														</span>
 														<span class="kt-option__label">
 															<span class="kt-option__head">
-																<span class="kt-option__title dana_vendor_key_{{$key}}">
-																	{{$vendorList->full_name}}
+																<span class="kt-option__title dana_vendor_key_<?php echo $key; ?>">
+																	<?php echo $vendorList->full_name; ?>
+
 																</span>
 															</span>
-															@if(!empty($vendorList->short_description))
+															<?php if(!empty($vendorList->short_description)): ?>
 															<span class="kt-option__body">
-																{{$vendorList->short_description}}
+																<?php echo $vendorList->short_description; ?>
+
 															</span>
-															@endif
+															<?php endif; ?>
 														</span>
 													</label>
 												</div>
-												@endforeach
+												<?php endforeach; ?>
 											</div>
 											
 											<div class="form-group">
-												<p style="padding-top: 25px"><label class="col-12 col-form-label">{{ trans('messages.dashboard.total_contributions') }} :</label></p>
+												<p style="padding-top: 25px"><label class="col-12 col-form-label"><?php echo trans('messages.dashboard.total_contributions'); ?> :</label></p>
 												<div class="col-12">
 													<div class="input-group">
-													<div class="input-group-prepend"><span class="input-group-text">{{Currency}}</span></div>
-													{{ Form::text('total_contribution', !empty($totalContributons)?$totalContributons:0, ['class'=>'form-control','autocomplete'=>'off', 'placeholder'=>'', 'aria-describedby'=>'basic-addon1']) }}
+													<div class="input-group-prepend"><span class="input-group-text"><?php echo Currency; ?></span></div>
+													<?php echo Form::text('total_contribution', !empty($totalContributons)?$totalContributons:0, ['class'=>'form-control','autocomplete'=>'off', 'placeholder'=>'', 'aria-describedby'=>'basic-addon1']); ?>
+
 													</div>
 												</div>
 											</div>
 
-											@endif
+											<?php endif; ?>
 											
-										@endif
+										<?php endif; ?>
 										
-									@endif
+									<?php endif; ?>
 											
 										
 									</div> 
@@ -933,10 +967,12 @@
 													</div>
 													<div class="kt-wizard-v4__nav-label">
 														<div class="kt-wizard-v4__nav-label-title">
-															{{ trans("messages.book_plan.your_profile") }}
+															<?php echo trans("messages.book_plan.your_profile"); ?>
+
 														</div>
 														<div class="kt-wizard-v4__nav-label-desc">
-															{{ trans("messages.book_plan.add_your_personal_info") }}
+															<?php echo trans("messages.book_plan.add_your_personal_info"); ?>
+
 														</div>
 													</div>
 												</div>
@@ -946,20 +982,22 @@
 
 									<!--begin: Form Wizard Step 2-->
 									<div class="kt-wizard-v4__content" data-ktwizard-type="step-content" data-ktwizard-state="current">
-										<div class="kt-heading kt-heading--md">{{ trans("messages.sub_project_detail.enter_your_personal_detail")}}</div>
-										@if($subProjectDetails->contributor_type == "personal")
+										<div class="kt-heading kt-heading--md"><?php echo trans("messages.sub_project_detail.enter_your_personal_detail"); ?></div>
+										<?php if($subProjectDetails->contributor_type == "personal"): ?>
 										<div class="kt-form__section kt-form__section--first">
 											<div class="kt-wizard-v4__form">
 												
 												<div class="row">
 													<div class="col-6 form-group">
-														<label>{{ trans("messages.sub_project_detail.full_name")}}*:</label>
-														{{ Form::text('full_name', '', ['class'=>'form-control full_name','autocomplete'=>'off', 'placeholder'=>'', 'ng-model'=>'full_name']) }}
-														<span class="form-text text-muted">{{ trans("messages.sub_project_detail.please_enter_your_full_name")}}</span>
+														<label><?php echo trans("messages.sub_project_detail.full_name"); ?>*:</label>
+														<?php echo Form::text('full_name', '', ['class'=>'form-control full_name','autocomplete'=>'off', 'placeholder'=>'', 'ng-model'=>'full_name']); ?>
+
+														<span class="form-text text-muted"><?php echo trans("messages.sub_project_detail.please_enter_your_full_name"); ?></span>
 													</div>
 													<div class="col-6 form-group">
-														<label>{{ trans("messages.sub_project_detail.ic_number_optional")}}:</label>
-														{{ Form::text('ic_number', '', ['class'=>'form-control ic_number','autocomplete'=>'off', 'placeholder'=>'']) }}
+														<label><?php echo trans("messages.sub_project_detail.ic_number_optional"); ?>:</label>
+														<?php echo Form::text('ic_number', '', ['class'=>'form-control ic_number','autocomplete'=>'off', 'placeholder'=>'']); ?>
+
 														<span class="form-text text-muted"></span>
 													</div>
 												</div>
@@ -968,20 +1006,22 @@
 												
 												<div class="row">
 													<div class="col-6 form-group">
-														<label>{{ trans("messages.sub_project_detail.phone_number")}}*:</label>
+														<label><?php echo trans("messages.sub_project_detail.phone_number"); ?>*:</label>
 														<div class="input-group">
 															<div class="input-group-prepend"><span class="input-group-text">+6</span></div>
-															{{ Form::text('phone', '', ['class'=>'form-control phone','aria-describedby'=>'basic-addon1','autocomplete'=>'off', 'placeholder'=>'']) }}
+															<?php echo Form::text('phone', '', ['class'=>'form-control phone','aria-describedby'=>'basic-addon1','autocomplete'=>'off', 'placeholder'=>'']); ?>
+
 														</div>
-														<span class="form-text text-muted">{{ trans("messages.sub_project_detail.please_enter_your_phone_number")}}</span>
+														<span class="form-text text-muted"><?php echo trans("messages.sub_project_detail.please_enter_your_phone_number"); ?></span>
 													</div>
 													<div class="col-6 form-group">
-														<label>{{ trans('messages.cms_page_details.email') }}*:</label>
+														<label><?php echo trans('messages.cms_page_details.email'); ?>*:</label>
 														<div class="input-group">
 															<div class="input-group-prepend"><span class="input-group-text">@</span></div>
-															{{ Form::text('email', '', ['class'=>'form-control email','aria-describedby'=>'basic-addon1','autocomplete'=>'off', 'placeholder'=>'']) }}
+															<?php echo Form::text('email', '', ['class'=>'form-control email','aria-describedby'=>'basic-addon1','autocomplete'=>'off', 'placeholder'=>'']); ?>
+
 														</div>
-														<span class="form-text text-muted">{{ trans("messages.sub_project_detail.please_enter_your_email")}}</span>
+														<span class="form-text text-muted"><?php echo trans("messages.sub_project_detail.please_enter_your_email"); ?></span>
 													</div>
 												</div>
 												
@@ -990,8 +1030,9 @@
 												<div class="row">
 													<div class="col-md-6">
 														<div class="form-group">
-															<label>{{ trans("messages.sub_project_detail.address_optional")}}</label>
-															{{ Form::text('address', '', ['class'=>'form-control address','autocomplete'=>'off', 'placeholder'=>'']) }}
+															<label><?php echo trans("messages.sub_project_detail.address_optional"); ?></label>
+															<?php echo Form::text('address', '', ['class'=>'form-control address','autocomplete'=>'off', 'placeholder'=>'']); ?>
+
 															<span class="form-text text-muted"></span>
 														</div>
 													</div>
@@ -999,28 +1040,32 @@
 													
 													<div class="col-md-6">
 														<div class="form-group">
-															<label>{{ trans("messages.sub_project_detail.postcode")}}*:</label>
-															{{ Form::text('postcode', '', ['class'=>'form-control postcode','autocomplete'=>'off', 'placeholder'=>'']) }}
-															<span class="form-text text-muted">{{ trans("messages.sub_project_detail.please_enter_your_postcode")}}</span>
+															<label><?php echo trans("messages.sub_project_detail.postcode"); ?>*:</label>
+															<?php echo Form::text('postcode', '', ['class'=>'form-control postcode','autocomplete'=>'off', 'placeholder'=>'']); ?>
+
+															<span class="form-text text-muted"><?php echo trans("messages.sub_project_detail.please_enter_your_postcode"); ?></span>
 														</div>
 													</div>
 												</div>
 											</div>
 										</div>
-										@else
+										<?php else: ?>
 										<div class="kt-form__section kt-form__section--first">
 											<div class="kt-wizard-v4__form">
 												
 												<div class="row">
 													<div class="col-6 form-group">
-														<label>{{ trans("messages.sub_project_detail.pic_full_name")}}*:</label>
-														{{ Form::hidden('profile_type', '1', ['class'=>'form-control','autocomplete'=>'off']) }}
-														{{ Form::text('full_name', '', ['class'=>'form-control full_name','autocomplete'=>'off', 'placeholder'=>'', 'ng-model'=>'full_name']) }}
-														<span class="form-text text-muted">{{ trans("messages.sub_project_detail.please_enter_your_full_name")}}</span>
+														<label><?php echo trans("messages.sub_project_detail.pic_full_name"); ?>*:</label>
+														<?php echo Form::hidden('profile_type', '1', ['class'=>'form-control','autocomplete'=>'off']); ?>
+
+														<?php echo Form::text('full_name', '', ['class'=>'form-control full_name','autocomplete'=>'off', 'placeholder'=>'', 'ng-model'=>'full_name']); ?>
+
+														<span class="form-text text-muted"><?php echo trans("messages.sub_project_detail.please_enter_your_full_name"); ?></span>
 													</div>
 													<div class="col-6 form-group">
-														<label>{{ trans("messages.sub_project_detail.pic_ic_number_optional")}}:</label>
-														{{ Form::text('ic_number', '', ['class'=>'form-control ic_number','autocomplete'=>'off', 'placeholder'=>'']) }}
+														<label><?php echo trans("messages.sub_project_detail.pic_ic_number_optional"); ?>:</label>
+														<?php echo Form::text('ic_number', '', ['class'=>'form-control ic_number','autocomplete'=>'off', 'placeholder'=>'']); ?>
+
 														<span class="form-text text-muted"></span>
 													</div>
 												</div>
@@ -1029,12 +1074,13 @@
 												
 												<div class="row">
 													<div class="col-6 form-group">
-														<label>{{ trans("messages.sub_project_detail.phone_number")}}*:</label>
+														<label><?php echo trans("messages.sub_project_detail.phone_number"); ?>*:</label>
 														<div class="input-group">
 															<div class="input-group-prepend"><span class="input-group-text">+6</span></div>
-															{{ Form::text('phone', '', ['class'=>'form-control phone','aria-describedby'=>'basic-addon1','autocomplete'=>'off', 'placeholder'=>'']) }}
+															<?php echo Form::text('phone', '', ['class'=>'form-control phone','aria-describedby'=>'basic-addon1','autocomplete'=>'off', 'placeholder'=>'']); ?>
+
 														</div>
-														<span class="form-text text-muted">{{ trans("messages.sub_project_detail.please_enter_your_phone_number")}}</span>
+														<span class="form-text text-muted"><?php echo trans("messages.sub_project_detail.please_enter_your_phone_number"); ?></span>
 													</div>
 												</div>
 												
@@ -1043,15 +1089,16 @@
 											</div>
 										</div>
 										
-										<div class="kt-heading kt-heading--md">{{ trans("messages.sub_project_detail.enter_your_company_detail")}}</div>
+										<div class="kt-heading kt-heading--md"><?php echo trans("messages.sub_project_detail.enter_your_company_detail"); ?></div>
 										<div class="kt-form__section kt-form__section--first">
 											<div class="kt-wizard-v4__form">
 												
 												<div class="row">
 													<div class="col-12 form-group">
-														<label>{{ trans("messages.sub_project_detail.company_name")}}*:</label>
-														{{ Form::text('company_name', '', ['class'=>'form-control company_name','autocomplete'=>'off', 'placeholder'=>'']) }}
-														<span class="form-text text-muted">{{ trans("messages.sub_project_detail.please_enter_your_company_name")}}</span>
+														<label><?php echo trans("messages.sub_project_detail.company_name"); ?>*:</label>
+														<?php echo Form::text('company_name', '', ['class'=>'form-control company_name','autocomplete'=>'off', 'placeholder'=>'']); ?>
+
+														<span class="form-text text-muted"><?php echo trans("messages.sub_project_detail.please_enter_your_company_name"); ?></span>
 													</div>
 												</div>
 												
@@ -1059,18 +1106,20 @@
 												
 												<div class="row">
 													<div class="col-6 form-group">
-														<label>{{ trans("messages.sub_project_detail.work_email")}}*:</label>
+														<label><?php echo trans("messages.sub_project_detail.work_email"); ?>*:</label>
 														<div class="input-group">
 															<div class="input-group-prepend"><span class="input-group-text">@</span></div>
-															{{ Form::text('email', '', ['class'=>'form-control email','aria-describedby'=>'basic-addon1','autocomplete'=>'off', 'placeholder'=>'']) }}
+															<?php echo Form::text('email', '', ['class'=>'form-control email','aria-describedby'=>'basic-addon1','autocomplete'=>'off', 'placeholder'=>'']); ?>
+
 														</div>
-														<span class="form-text text-muted">{{ trans("messages.sub_project_detail.please_enter_your_email")}}</span>
+														<span class="form-text text-muted"><?php echo trans("messages.sub_project_detail.please_enter_your_email"); ?></span>
 													</div>
 													<div class="col-6 form-group">
-														<label>{{ trans("messages.sub_project_detail.company_registration_number_optional")}}:</label>
+														<label><?php echo trans("messages.sub_project_detail.company_registration_number_optional"); ?>:</label>
 														<div class="input-group">
 															<div class="input-group-prepend"><span class="input-group-text">+6</span></div>
-															{{ Form::text('registration_number', '', ['class'=>'form-control registration_number', 'aria-describedby'=>'basic-addon1', 'autocomplete'=>'off', 'placeholder'=>'']) }}
+															<?php echo Form::text('registration_number', '', ['class'=>'form-control registration_number', 'aria-describedby'=>'basic-addon1', 'autocomplete'=>'off', 'placeholder'=>'']); ?>
+
 														</div>
 														<span class="form-text text-muted"></span>
 													</div>
@@ -1082,8 +1131,9 @@
 												
 													<div class="col-xl-12">
 														<div class="form-group">
-															<label>{{ trans("messages.sub_project_detail.company_address_optional")}}</label>
-															{{ Form::text('address', '', ['class'=>'form-control address','autocomplete'=>'off', 'placeholder'=>'']) }}
+															<label><?php echo trans("messages.sub_project_detail.company_address_optional"); ?></label>
+															<?php echo Form::text('address', '', ['class'=>'form-control address','autocomplete'=>'off', 'placeholder'=>'']); ?>
+
 															<span class="form-text text-muted"></span>
 														</div>
 													</div>
@@ -1092,15 +1142,16 @@
 													
 													<div class="col-xl-6">
 														<div class="form-group">
-															<label>{{ trans("messages.sub_project_detail.postcode")}}</label>
-															{{ Form::text('postcode', '', ['class'=>'form-control postcode','autocomplete'=>'off', 'placeholder'=>'']) }}
-															<span class="form-text text-muted">{{ trans("messages.sub_project_detail.please_enter_your_postcode")}}</span>
+															<label><?php echo trans("messages.sub_project_detail.postcode"); ?></label>
+															<?php echo Form::text('postcode', '', ['class'=>'form-control postcode','autocomplete'=>'off', 'placeholder'=>'']); ?>
+
+															<span class="form-text text-muted"><?php echo trans("messages.sub_project_detail.please_enter_your_postcode"); ?></span>
 														</div>
 													</div>
 												</div>
 											</div>
 										</div>
-										@endif
+										<?php endif; ?>
 									</div>
 
 									<!--end: Form Wizard Step 2-->
@@ -1118,10 +1169,12 @@
 													</div>
 													<div class="kt-wizard-v4__nav-label">
 														<div class="kt-wizard-v4__nav-label-title">
-															{{ trans("messages.book_plan.payment_details") }}
+															<?php echo trans("messages.book_plan.payment_details"); ?>
+
 														</div>
 														<div class="kt-wizard-v4__nav-label-desc">
-															{{ trans("messages.book_plan.choose_your_payment_options") }}
+															<?php echo trans("messages.book_plan.choose_your_payment_options"); ?>
+
 														</div>
 													</div>
 												</div>
@@ -1130,18 +1183,19 @@
 									</div>
 
 									<div class="kt-wizard-v4__content" data-ktwizard-type="step-content" data-ktwizard-state="current">
-										<div class="kt-heading kt-heading--md">{{ trans("messages.sub_project_detail.select_payment_details")}}</div>
+										<div class="kt-heading kt-heading--md"><?php echo trans("messages.sub_project_detail.select_payment_details"); ?></div>
 										<div class="kt-form__section kt-form__section--first">
 											<div class="kt-wizard-v4__form">
 											
 												<div class="form-group form-group-marginless">
-												  <label>{{ trans("messages.sub_project_detail.choose_payment_option")}}:</label>
+												  <label><?php echo trans("messages.sub_project_detail.choose_payment_option"); ?>:</label>
 												  <div class="row">
 													<div class="col-sm-6">
 														<label class="kt-option">
 															<span class="kt-option__control">
 																<span class="kt-radio">
-																	{{ Form::radio('payment_methods',0,1,['class'=>'payment_methods_change']) }}
+																	<?php echo Form::radio('payment_methods',0,1,['class'=>'payment_methods_change']); ?>
+
 																	<span></span>
 																</span>
 															</span>
@@ -1158,69 +1212,74 @@
 															</span>
 														</label>
 													</div>
-													@if(!empty($paymentMethods))
+													<?php if(!empty($paymentMethods)): ?>
 														<div class="dynamic_plan_option_block">
 															<div class="form-group">
 																<div class="kt-portlet__tab_block_options">
-																	@foreach($paymentMethods as $paymentMethod)
-																		@if($paymentMethod->id == 11)
+																	<?php foreach($paymentMethods as $paymentMethod): ?>
+																		<?php if($paymentMethod->id == 11): ?>
 																		<div class="kt-portlet__tab_block_options_item">
-																			{{ Form::radio('senang_type','onetime', 1, ['class'=>'senang_type', 'id'=>'tab_onetime']) }}
-																			<label for="tab_onetime">{{ trans("messages.sub_project_detail.ONETIME")}}</label>
+																			<?php echo Form::radio('senang_type','onetime', 1, ['class'=>'senang_type', 'id'=>'tab_onetime']); ?>
+
+																			<label for="tab_onetime"><?php echo trans("messages.sub_project_detail.ONETIME"); ?></label>
 																		</div>
-																		@endif
+																		<?php endif; ?>
 																		
-																		@if(in_array($paymentMethod->id, [12,13]))
+																		<?php if(in_array($paymentMethod->id, [12,13])): ?>
 																		<div class="kt-portlet__tab_block_options_item">
-																			{{ Form::radio('senang_type','recurring',0, ['class'=>'senang_type', 'id'=>'tab_recurring']) }}
-																			<label for="tab_recurring">{{ trans("messages.sub_project_detail.RECURRING")}}</label>
+																			<?php echo Form::radio('senang_type','recurring',0, ['class'=>'senang_type', 'id'=>'tab_recurring']); ?>
+
+																			<label for="tab_recurring"><?php echo trans("messages.sub_project_detail.RECURRING"); ?></label>
 																		</div>
 																		<?php break; ?>
-																		@endif
+																		<?php endif; ?>
 
-																	@endforeach
+																	<?php endforeach; ?>
 																
 																</div>
 
 																<div>
 																	<div class="tab_onetime kt-portlet__tab_block_options" >
 																		<div class="">
-																			{{ Form::radio('payment_method', 11 , 1, ['class'=>'senang_types', 'id'=>'tab_fixed_onetime']) }}
-																			<label for="tab_onetime">{{ trans("messages.sub_project_detail.FIXEDPAY")}}</label>
+																			<?php echo Form::radio('payment_method', 11 , 1, ['class'=>'senang_types', 'id'=>'tab_fixed_onetime']); ?>
+
+																			<label for="tab_onetime"><?php echo trans("messages.sub_project_detail.FIXEDPAY"); ?></label>
 																		</div>
 																	</div>
 																	<div class="tab_recurring d-none">
 																		<div class="form-group">
-																			@foreach($paymentMethods as $paymentMethod)
-																			@if ($paymentMethod->id == 12)
+																			<?php foreach($paymentMethods as $paymentMethod): ?>
+																			<?php if($paymentMethod->id == 12): ?>
 																			
 																			<?php $installmentActive = true; ?>
 																				<div class="">
-																					{{ Form::radio('payment_method', 12, 1, ['class'=>'senang_retype', 'id'=>'tab_installment']) }}
-																					<label for="tab_installment">{{ trans("messages.sub_project_detail.INSTALLMENT")}}</label>
+																					<?php echo Form::radio('payment_method', 12, 1, ['class'=>'senang_retype', 'id'=>'tab_installment']); ?>
+
+																					<label for="tab_installment"><?php echo trans("messages.sub_project_detail.INSTALLMENT"); ?></label>
 																				</div>
-																			@endif
-																			@if ($paymentMethod->id == 13)
+																			<?php endif; ?>
+																			<?php if($paymentMethod->id == 13): ?>
 																			
 																			<?php $subscriptionActive = true; ?>
 																				<div class="">
-																					{{ Form::radio('payment_method', 13, $installmentActive ? 0:1, ['class'=>'senang_retype', 'id'=>'tab_subscription']) }}
-																					<label for="tab_subscription">{{ trans("messages.sub_project_detail.SUBSCRIPTION")}}</label>
+																					<?php echo Form::radio('payment_method', 13, $installmentActive ? 0:1, ['class'=>'senang_retype', 'id'=>'tab_subscription']); ?>
+
+																					<label for="tab_subscription"><?php echo trans("messages.sub_project_detail.SUBSCRIPTION"); ?></label>
 																				</div>
 																				
-																			@endif
-																			@endforeach
+																			<?php endif; ?>
+																			<?php endforeach; ?>
 																		</div>
 																		<div>
 																			
-																			@if ($installmentActive)
+																			<?php if($installmentActive): ?>
 																			<div class="tab_installment">
 																				<div class="form-group">
 																					<label for="dropdownNumbers">Number of Installment:</label>
 																					<select class="form-control" id="dropdownNumbers" name="numberOfInstallment">
-																						@for ($i = 1; $i <= 12; $i++)
-																							<option value="{{ $i }}">{{ $i }}</option>
-																						@endfor
+																						<?php for($i = 1; $i <= 12; $i++): ?>
+																							<option value="<?php echo $i; ?>"><?php echo $i; ?></option>
+																						<?php endfor; ?>
 																					</select>
 																				</div>
 																				<div class="form-group">
@@ -1236,16 +1295,16 @@
 																				<div class="form-group">
 																					<label for="dropdownNumbers">Date charging occured:</label>
 																					<select class="form-control" id="dropdownNumbers">
-																						@for ($i = 1; $i <= 28; $i++)
-																							<option value="{{ $i }}">{{ $i }}</option>
-																						@endfor
+																						<?php for($i = 1; $i <= 28; $i++): ?>
+																							<option value="<?php echo $i; ?>"><?php echo $i; ?></option>
+																						<?php endfor; ?>
 																					</select>
 																				</div>
 																			</div>
 																			
 																				
-																			@endif
-																			@if ($subscriptionActive)
+																			<?php endif; ?>
+																			<?php if($subscriptionActive): ?>
 																			<div class="tab_subscription <?php echo $installmentActive ? 'd-none':'' ; ?>">
 																				
 																				<div class="form-group">
@@ -1260,13 +1319,13 @@
 																				<div class="form-group">
 																					<label for="dropdownNumbers">Date charging occured:</label>
 																					<select class="form-control" id="dropdownNumbers">
-																						@for ($i = 1; $i <= 28; $i++)
-																							<option value="{{ $i }}">{{ $i }}</option>
-																						@endfor
+																						<?php for($i = 1; $i <= 28; $i++): ?>
+																							<option value="<?php echo $i; ?>"><?php echo $i; ?></option>
+																						<?php endfor; ?>
 																					</select>
 																				</div>
 																			</div>																				
-																			@endif
+																			<?php endif; ?>
 																		</div>
 																	</div>
 																</div>
@@ -1275,7 +1334,7 @@
 
 
 														</div>
-													@endif
+													<?php endif; ?>
 												  </div>
 												</div>
 												
@@ -1300,10 +1359,12 @@
 													</div>
 													<div class="kt-wizard-v4__nav-label">
 														<div class="kt-wizard-v4__nav-label-title">
-															{{ trans("messages.book_plan.confirmation") }}
+															<?php echo trans("messages.book_plan.confirmation"); ?>
+
 														</div>
 														<div class="kt-wizard-v4__nav-label-desc">
-															{{ trans("messages.book_plan.review_and_submit") }}
+															<?php echo trans("messages.book_plan.review_and_submit"); ?>
+
 														</div>
 													</div>
 												</div>
@@ -1312,69 +1373,73 @@
 									</div>
 
 									<div class="kt-wizard-v4__content" data-ktwizard-type="step-content" data-ktwizard-state="current">
-										<div class="kt-heading kt-heading--md">{{ trans("messages.book_plan.review_your_details_and_infaq")}}</div>
+										<div class="kt-heading kt-heading--md"><?php echo trans("messages.book_plan.review_your_details_and_infaq"); ?></div>
 										<div class="kt-form__section kt-form__section--first">
 											<div class="kt-wizard-v4__review">
 												<div class="kt-wizard-v4__review-item">
 													<div class="kt-wizard-v4__review-title">
-														{{ trans("messages.book_plan.your_plan_details")}}
+														<?php echo trans("messages.book_plan.your_plan_details"); ?>
+
 													</div>
 													<div class="kt-wizard-v4__review-content">
-													  @if($subProjectDetails->project_module == 1)
-														{{ trans("messages.book_plan.commitment_type")}}: <span class="plan_type"></span><br />
-														{{ trans("messages.book_plan.plan")}}: <span class="plan_price"></span><br />
-														{{ trans("messages.book_plan.period")}}: <span class="plan_period"></span>
-													  @elseif($subProjectDetails->project_module == 2)
-														 @if($subProjectDetails->customize_plan_option == 1 || $subProjectDetails->customize_plan_option == 3)
-															 {{ trans("messages.book_plan.plan")}}: <span class="project_plan_single"></span>
-														 @else
-															{{ trans("messages.book_plan.plan")}}: <span class="project_plan"></span>
-														@endif
-													  @elseif($subProjectDetails->project_module == 3)
-														{{ trans("messages.book_plan.plan")}}: <span class="dana_project_plan"></span>
-													  @endif
+													  <?php if($subProjectDetails->project_module == 1): ?>
+														<?php echo trans("messages.book_plan.commitment_type"); ?>: <span class="plan_type"></span><br />
+														<?php echo trans("messages.book_plan.plan"); ?>: <span class="plan_price"></span><br />
+														<?php echo trans("messages.book_plan.period"); ?>: <span class="plan_period"></span>
+													  <?php elseif($subProjectDetails->project_module == 2): ?>
+														 <?php if($subProjectDetails->customize_plan_option == 1 || $subProjectDetails->customize_plan_option == 3): ?>
+															 <?php echo trans("messages.book_plan.plan"); ?>: <span class="project_plan_single"></span>
+														 <?php else: ?>
+															<?php echo trans("messages.book_plan.plan"); ?>: <span class="project_plan"></span>
+														<?php endif; ?>
+													  <?php elseif($subProjectDetails->project_module == 3): ?>
+														<?php echo trans("messages.book_plan.plan"); ?>: <span class="dana_project_plan"></span>
+													  <?php endif; ?>
 													</div>
 												</div>
 												<div class="kt-wizard-v4__review-item">
 													<div class="kt-wizard-v4__review-title">
-														{{ trans("messages.book_plan.your_personal_info")}}
+														<?php echo trans("messages.book_plan.your_personal_info"); ?>
+
 													</div>
-													@if($subProjectDetails->contributor_type == "personal")
+													<?php if($subProjectDetails->contributor_type == "personal"): ?>
 														<div class="kt-wizard-v4__review-content">
-															{{ trans("messages.sub_project_detail.full_name")}}: <span class="full_name"></span><br />
-															{{ trans("messages.book_plan.ic_number")}}: <span class="ic_number"></span><br />
-															{{ trans("messages.sub_project_detail.phone_number")}}: <span class="phone"></span><br />
-															{{ trans('messages.cms_page_details.email') }}: <span class="email"></span><br/>
-															{{ trans("messages.book_plan.address")}}: <span class="address"></span><br />
-															{{ trans("messages.sub_project_detail.postcode")}}: <span class="postcode"></span>
+															<?php echo trans("messages.sub_project_detail.full_name"); ?>: <span class="full_name"></span><br />
+															<?php echo trans("messages.book_plan.ic_number"); ?>: <span class="ic_number"></span><br />
+															<?php echo trans("messages.sub_project_detail.phone_number"); ?>: <span class="phone"></span><br />
+															<?php echo trans('messages.cms_page_details.email'); ?>: <span class="email"></span><br/>
+															<?php echo trans("messages.book_plan.address"); ?>: <span class="address"></span><br />
+															<?php echo trans("messages.sub_project_detail.postcode"); ?>: <span class="postcode"></span>
 														</div>
-													@else
+													<?php else: ?>
 														<div class="kt-wizard-v4__review-content">
-															{{ trans("messages.sub_project_detail.pic_full_name")}}: <span class="full_name"></span><br />
-															{{ trans("messages.sub_project_detail.pic_ic_number")}}: <span class="ic_number"></span><br />
-															{{ trans("messages.book_plan.pic_phone_number")}}: <span class="phone"></span><br />
+															<?php echo trans("messages.sub_project_detail.pic_full_name"); ?>: <span class="full_name"></span><br />
+															<?php echo trans("messages.sub_project_detail.pic_ic_number"); ?>: <span class="ic_number"></span><br />
+															<?php echo trans("messages.book_plan.pic_phone_number"); ?>: <span class="phone"></span><br />
 														</div>
 														<div class="kt-wizard-v4__review-title">
-															{{ trans("messages.book_plan.your_company") }}
+															<?php echo trans("messages.book_plan.your_company"); ?>
+
 														</div>
 														<div class="kt-wizard-v4__review-content">
-															{{ trans("messages.book_plan.company_name") }}: <span class="company_name"></span><br />
-															{{ trans("messages.book_plan.company_registration_number") }}: <span class="registration_number"></span><br />
-															{{ trans('messages.cms_page_details.email') }}: <span class="email"></span><br/>
-															{{ trans("messages.book_plan.address")}}: <span class="address"></span><br />
-															{{ trans("messages.sub_project_detail.postcode")}}: <span class="postcode"></span>
+															<?php echo trans("messages.book_plan.company_name"); ?>: <span class="company_name"></span><br />
+															<?php echo trans("messages.book_plan.company_registration_number"); ?>: <span class="registration_number"></span><br />
+															<?php echo trans('messages.cms_page_details.email'); ?>: <span class="email"></span><br/>
+															<?php echo trans("messages.book_plan.address"); ?>: <span class="address"></span><br />
+															<?php echo trans("messages.sub_project_detail.postcode"); ?>: <span class="postcode"></span>
 														</div>
-													@endif
+													<?php endif; ?>
 												</div>
 												<div class="kt-wizard-v4__review-item">
 													<div class="kt-wizard-v4__review-title">
-														{{ trans("messages.book_plan.your_payment_details") }}
+														<?php echo trans("messages.book_plan.your_payment_details"); ?>
+
 													</div>
 													<div class="kt-wizard-v4__review-content">
-														{{ trans("messages.book_plan.payment_options") }}: <span class="paymnet_option"></span><br />
+														<?php echo trans("messages.book_plan.payment_options"); ?>: <span class="paymnet_option"></span><br />
 													</div>
 													<div class="kt-wizard-v4__review-content payment_amount_blk">
-														{{ trans("messages.book_plan.total_amount") }}: <span class="total_payment_amount"></span><br />
+														<?php echo trans("messages.book_plan.total_amount"); ?>: <span class="total_payment_amount"></span><br />
 													</div>
 												</div>
 											</div>
@@ -1387,17 +1452,19 @@
 									<div class="kt-form__actions">
 										
 										<div class="terms_check_box">
-											<input type="checkbox" name="terms" value="1" id="terms">&nbsp;&nbsp; <label for="terms">{{ trans('messages.cms_page_details.i_have_read_and_agree_to_the') }}</label>&nbsp;<a href="{{WEBSITE_URL}}projects/terms-and-conditions" class="agree" target="_blank"> <b>{{ trans("messages.book_plan.privacy_policy") }}</b></a>
+											<input type="checkbox" name="terms" value="1" id="terms">&nbsp;&nbsp; <label for="terms"><?php echo trans('messages.cms_page_details.i_have_read_and_agree_to_the'); ?></label>&nbsp;<a href="<?php echo WEBSITE_URL; ?>projects/terms-and-conditions" class="agree" target="_blank"> <b><?php echo trans("messages.book_plan.privacy_policy"); ?></b></a>
 										</div>
 										
 										<button class="btn btn-success btn-md btn-tall btn-wide kt-font-bold kt-font-transform-u final_submit_btn" onclick="createDonation()" disabled="disabled">
-											{{ trans('messages.cms_page_details.submit') }}
+											<?php echo trans('messages.cms_page_details.submit'); ?>
+
 										</button>
 										
 									</div>
 
 									<!--end: Form Actions -->
-								{{ Form::close() }}
+								<?php echo Form::close(); ?>
+
 
 								<!--end: Form Wizard Form-->
 							</div>
@@ -1407,48 +1474,53 @@
 			
 			  </div>
 			  
-		    @else
+		    <?php else: ?>
 			  <div class="kt-portlet">
-			   {{ Form::open(['role' => 'form','url' => "/",'files'=>'true', 'class' => 'kt-form','id'=>"inquiryForm"]) }}
-			    <input type="hidden" name="sub_project_id" class="get_project_id" value="{{$subProjectDetails->id}}">
+			   <?php echo Form::open(['role' => 'form','url' => "/",'files'=>'true', 'class' => 'kt-form','id'=>"inquiryForm"]); ?>
+
+			    <input type="hidden" name="sub_project_id" class="get_project_id" value="<?php echo $subProjectDetails->id; ?>">
 				<div class="kt-portlet__body">
 					<div class="kt-pricing-1 kt-pricing-1--fixed">
 						<div class="kt-wizard-v4__content" data-ktwizard-type="step-content" style="padding: 0 6%">
-							<div class="kt-heading kt-heading--md"><h2>{{ trans("messages.sub_project_detail.enquire_form")}}</h2></div>
-							<div class="kt-heading kt-heading--md">{{ trans("messages.sub_project_detail.enter_your_personal_detail")}}</div>
-							@if($subProjectDetails->contributor_type == "personal")
+							<div class="kt-heading kt-heading--md"><h2><?php echo trans("messages.sub_project_detail.enquire_form"); ?></h2></div>
+							<div class="kt-heading kt-heading--md"><?php echo trans("messages.sub_project_detail.enter_your_personal_detail"); ?></div>
+							<?php if($subProjectDetails->contributor_type == "personal"): ?>
 							<div class="kt-form__section kt-form__section--first">
 								<div class="kt-wizard-v4__form">
 									
 									<div class="row">
 										<div class="col-6 form-group">
-											<label>{{ trans("messages.sub_project_detail.full_name")}}*:</label>
-											{{ Form::text('full_name', '', ['class'=>'form-control full_name','autocomplete'=>'off', 'placeholder'=>'']) }}
-											<span class="form-text text-muted">{{ trans("messages.sub_project_detail.please_enter_your_full_name")}}</span>
+											<label><?php echo trans("messages.sub_project_detail.full_name"); ?>*:</label>
+											<?php echo Form::text('full_name', '', ['class'=>'form-control full_name','autocomplete'=>'off', 'placeholder'=>'']); ?>
+
+											<span class="form-text text-muted"><?php echo trans("messages.sub_project_detail.please_enter_your_full_name"); ?></span>
 										</div>
 										<div class="col-6 form-group">
-											<label>{{ trans("messages.sub_project_detail.ic_number_optional")}}:</label>
-											{{ Form::text('ic_number', '', ['class'=>'form-control ic_number','autocomplete'=>'off', 'placeholder'=>'']) }}
+											<label><?php echo trans("messages.sub_project_detail.ic_number_optional"); ?>:</label>
+											<?php echo Form::text('ic_number', '', ['class'=>'form-control ic_number','autocomplete'=>'off', 'placeholder'=>'']); ?>
+
 											<span class="form-text text-muted"></span>
 										</div>
 									</div>
 									
 									<div class="row">
 										<div class="col-6 form-group">
-											<label>{{ trans("messages.sub_project_detail.phone_number")}}*:</label>
+											<label><?php echo trans("messages.sub_project_detail.phone_number"); ?>*:</label>
 											<div class="input-group">
 												<div class="input-group-prepend"><span class="input-group-text">+6</span></div>
-												{{ Form::text('phone', '', ['class'=>'form-control phone','aria-describedby'=>'basic-addon1','autocomplete'=>'off', 'placeholder'=>'']) }}
+												<?php echo Form::text('phone', '', ['class'=>'form-control phone','aria-describedby'=>'basic-addon1','autocomplete'=>'off', 'placeholder'=>'']); ?>
+
 											</div>
-											<span class="form-text text-muted">{{ trans("messages.sub_project_detail.please_enter_your_phone_number")}}</span>
+											<span class="form-text text-muted"><?php echo trans("messages.sub_project_detail.please_enter_your_phone_number"); ?></span>
 										</div>
 										<div class="col-6 form-group">
-											<label>{{ trans('messages.cms_page_details.email') }}*:</label>
+											<label><?php echo trans('messages.cms_page_details.email'); ?>*:</label>
 											<div class="input-group">
 												<div class="input-group-prepend"><span class="input-group-text">@</span></div>
-												{{ Form::text('email', '', ['class'=>'form-control email','aria-describedby'=>'basic-addon1','autocomplete'=>'off', 'placeholder'=>'']) }}
+												<?php echo Form::text('email', '', ['class'=>'form-control email','aria-describedby'=>'basic-addon1','autocomplete'=>'off', 'placeholder'=>'']); ?>
+
 											</div>
-											<span class="form-text text-muted">{{ trans("messages.sub_project_detail.please_enter_your_email")}}</span>
+											<span class="form-text text-muted"><?php echo trans("messages.sub_project_detail.please_enter_your_email"); ?></span>
 										</div>
 									</div>
 									
@@ -1456,17 +1528,19 @@
 									
 										<div class="col-sm-8">
 											<div class="form-group">
-												<label>{{ trans("messages.sub_project_detail.address_optional")}}</label>
-												{{ Form::text('address', '', ['class'=>'form-control address','autocomplete'=>'off', 'placeholder'=>'']) }}
+												<label><?php echo trans("messages.sub_project_detail.address_optional"); ?></label>
+												<?php echo Form::text('address', '', ['class'=>'form-control address','autocomplete'=>'off', 'placeholder'=>'']); ?>
+
 												<span class="form-text text-muted"></span>
 											</div>
 										</div>
 										
 										<div class="col-sm-4">
 											<div class="form-group">
-												<label>{{ trans("messages.sub_project_detail.postcode")}}</label>
-												{{ Form::text('postcode', '', ['class'=>'form-control postcode','autocomplete'=>'off', 'placeholder'=>'']) }}
-												<span class="form-text text-muted">{{ trans("messages.sub_project_detail.please_enter_your_postcode")}}</span>
+												<label><?php echo trans("messages.sub_project_detail.postcode"); ?></label>
+												<?php echo Form::text('postcode', '', ['class'=>'form-control postcode','autocomplete'=>'off', 'placeholder'=>'']); ?>
+
+												<span class="form-text text-muted"><?php echo trans("messages.sub_project_detail.please_enter_your_postcode"); ?></span>
 											</div>
 										</div>
 									</div>
@@ -1474,39 +1548,43 @@
 									<div class="row">
 									  <div class="col-xl-12">
 										<div class="form-group">
-											<button class="btn btn-success float-right">{{ trans("messages.sub_project_detail.auto_generate_form_application")}}</button>
+											<button class="btn btn-success float-right"><?php echo trans("messages.sub_project_detail.auto_generate_form_application"); ?></button>
 										</div>
 									  </div>
 									</div>
 									
 								</div>
 							</div>
-							@else
+							<?php else: ?>
 							<div class="kt-form__section kt-form__section--first">
 								<div class="kt-wizard-v4__form">
 									
 									<div class="row">
 										<div class="col-6 form-group">
-											<label>{{ trans("messages.sub_project_detail.pic_full_name")}}*:</label>
-											{{ Form::hidden('profile_type', '1', ['class'=>'form-control','autocomplete'=>'off']) }}
-											{{ Form::text('full_name', '', ['class'=>'form-control full_name','autocomplete'=>'off', 'placeholder'=>'']) }}
-											<span class="form-text text-muted">{{ trans("messages.sub_project_detail.please_enter_your_full_name")}}</span>
+											<label><?php echo trans("messages.sub_project_detail.pic_full_name"); ?>*:</label>
+											<?php echo Form::hidden('profile_type', '1', ['class'=>'form-control','autocomplete'=>'off']); ?>
+
+											<?php echo Form::text('full_name', '', ['class'=>'form-control full_name','autocomplete'=>'off', 'placeholder'=>'']); ?>
+
+											<span class="form-text text-muted"><?php echo trans("messages.sub_project_detail.please_enter_your_full_name"); ?></span>
 										</div>
 										<div class="col-6 form-group">
-											<label>{{ trans("messages.sub_project_detail.pic_ic_number_optional")}}:</label>
-											{{ Form::text('ic_number', '', ['class'=>'form-control ic_number','autocomplete'=>'off', 'placeholder'=>'']) }}
+											<label><?php echo trans("messages.sub_project_detail.pic_ic_number_optional"); ?>:</label>
+											<?php echo Form::text('ic_number', '', ['class'=>'form-control ic_number','autocomplete'=>'off', 'placeholder'=>'']); ?>
+
 											<span class="form-text text-muted"></span>
 										</div>
 									</div>
 									
 									<div class="row">
 										<div class="col-6 form-group">
-											<label>{{ trans("messages.sub_project_detail.phone_number")}}*:</label>
+											<label><?php echo trans("messages.sub_project_detail.phone_number"); ?>*:</label>
 											<div class="input-group">
 												<div class="input-group-prepend"><span class="input-group-text">+6</span></div>
-												{{ Form::text('phone', '', ['class'=>'form-control phone','aria-describedby'=>'basic-addon1','autocomplete'=>'off', 'placeholder'=>'']) }}
+												<?php echo Form::text('phone', '', ['class'=>'form-control phone','aria-describedby'=>'basic-addon1','autocomplete'=>'off', 'placeholder'=>'']); ?>
+
 											</div>
-											<span class="form-text text-muted">{{ trans("messages.sub_project_detail.please_enter_your_phone_number")}}</span>
+											<span class="form-text text-muted"><?php echo trans("messages.sub_project_detail.please_enter_your_phone_number"); ?></span>
 										</div>
 									</div>
 									
@@ -1515,32 +1593,35 @@
 								</div>
 							</div>
 							
-							<div class="kt-heading kt-heading--md">{{ trans("messages.sub_project_detail.enter_your_company_detail")}}</div>
+							<div class="kt-heading kt-heading--md"><?php echo trans("messages.sub_project_detail.enter_your_company_detail"); ?></div>
 							<div class="kt-form__section kt-form__section--first">
 								<div class="kt-wizard-v4__form">
 									
 									<div class="row">
 										<div class="col-6 form-group">
-											<label>{{ trans("messages.sub_project_detail.company_name")}}*:</label>
-											{{ Form::text('company_name', '', ['class'=>'form-control company_name','autocomplete'=>'off', 'placeholder'=>'']) }}
-											<span class="form-text text-muted">{{ trans("messages.sub_project_detail.please_enter_your_company_name")}}</span>
+											<label><?php echo trans("messages.sub_project_detail.company_name"); ?>*:</label>
+											<?php echo Form::text('company_name', '', ['class'=>'form-control company_name','autocomplete'=>'off', 'placeholder'=>'']); ?>
+
+											<span class="form-text text-muted"><?php echo trans("messages.sub_project_detail.please_enter_your_company_name"); ?></span>
 										</div>
 									</div>
 									
 									<div class="row">
 										<div class="col-6 form-group">
-											<label>{{ trans("messages.sub_project_detail.work_email")}}*:</label>
+											<label><?php echo trans("messages.sub_project_detail.work_email"); ?>*:</label>
 											<div class="input-group">
 												<div class="input-group-prepend"><span class="input-group-text">@</span></div>
-												{{ Form::text('email', '', ['class'=>'form-control email','aria-describedby'=>'basic-addon1','autocomplete'=>'off', 'placeholder'=>'']) }}
+												<?php echo Form::text('email', '', ['class'=>'form-control email','aria-describedby'=>'basic-addon1','autocomplete'=>'off', 'placeholder'=>'']); ?>
+
 											</div>
-											<span class="form-text text-muted">{{ trans("messages.sub_project_detail.please_enter_your_email")}}</span>
+											<span class="form-text text-muted"><?php echo trans("messages.sub_project_detail.please_enter_your_email"); ?></span>
 										</div>
 										<div class="col-6 form-group">
-											<label>{{ trans("messages.sub_project_detail.company_registration_number_optional")}}:</label>
+											<label><?php echo trans("messages.sub_project_detail.company_registration_number_optional"); ?>:</label>
 											<div class="input-group">
 												<div class="input-group-prepend"><span class="input-group-text">#</span></div>
-												{{ Form::text('registration_number', '', ['class'=>'form-control registration_number', 'aria-describedby'=>'basic-addon1', 'autocomplete'=>'off', 'placeholder'=>'']) }}
+												<?php echo Form::text('registration_number', '', ['class'=>'form-control registration_number', 'aria-describedby'=>'basic-addon1', 'autocomplete'=>'off', 'placeholder'=>'']); ?>
+
 											</div>
 											<span class="form-text text-muted"></span>
 										</div>
@@ -1549,37 +1630,40 @@
 									<div class="row">
 									
 										<div class="col-sm-8 form-group">
-											<label>{{ trans("messages.sub_project_detail.company_address_optional")}}</label>
-											{{ Form::text('address', '', ['class'=>'form-control address','autocomplete'=>'off', 'placeholder'=>'']) }}
+											<label><?php echo trans("messages.sub_project_detail.company_address_optional"); ?></label>
+											<?php echo Form::text('address', '', ['class'=>'form-control address','autocomplete'=>'off', 'placeholder'=>'']); ?>
+
 											<span class="form-text text-muted"></span>
 										</div>
 										
 										<div class="col-sm-4 form-group">
-											<label>{{ trans("messages.sub_project_detail.postcode")}}</label>
-											{{ Form::text('postcode', '', ['class'=>'form-control postcode','autocomplete'=>'off', 'placeholder'=>'']) }}
-											<span class="form-text text-muted">{{ trans("messages.sub_project_detail.please_enter_your_postcode")}}</span>
+											<label><?php echo trans("messages.sub_project_detail.postcode"); ?></label>
+											<?php echo Form::text('postcode', '', ['class'=>'form-control postcode','autocomplete'=>'off', 'placeholder'=>'']); ?>
+
+											<span class="form-text text-muted"><?php echo trans("messages.sub_project_detail.please_enter_your_postcode"); ?></span>
 										</div>
 									</div>
 									
 									<div class="row">
 									  <div class="col-xl-12">
 										<div class="form-group">
-											<button class="btn btn-success float-right">{{ trans("messages.sub_project_detail.auto_generate_form_application")}}</button>
+											<button class="btn btn-success float-right"><?php echo trans("messages.sub_project_detail.auto_generate_form_application"); ?></button>
 										</div>
 									  </div>
 									</div>
 									
 								</div>
 							</div>
-							@endif
+							<?php endif; ?>
 						</div>
 					</div>
 				</div>
-			   {{ Form::close() }}
+			   <?php echo Form::close(); ?>
+
 			  </div>
 			
-		   @endif
-		  @endif
+		   <?php endif; ?>
+		  <?php endif; ?>
 		</div>
 		<!-- end:: Content -->
 	</div>
@@ -1599,7 +1683,7 @@
 	
 // 	$('#loader_img').show();
 // 	$.ajax({
-// 		url: '{{ route("user.get_plan_html") }}',
+// 		url: '<?php echo route("user.get_plan_html"); ?>',
 // 		type:'POST',
 // 		data: {'plan_type':plan_type, 'sub_project_id':sub_project_id},
 // 		success: function(r){
@@ -1659,7 +1743,7 @@ function createDonation(){
 	var formData  = $('#book_plan_form')[0];
 	
 	$.ajax({
-		url: '{{ route("User.saveDonation") }}',
+		url: '<?php echo route("User.saveDonation"); ?>',
 		type:'POST',
 		data: $('#book_plan_form').serialize(),
 		data: new FormData(formData),
@@ -1673,12 +1757,12 @@ function createDonation(){
 			if(datas['success'] == 1) {
 				//location.reload();
 				if(datas['billUrl'] == ""){
-					window.location.href	 =	"{{ URL('invoice') }}/"+datas['invoiceId'];
+					window.location.href	 =	"<?php echo URL('invoice'); ?>/"+datas['invoiceId'];
 				}else{
 					window.location.href	 =	datas['billUrl'];
 				}
 			}else if(datas['success'] == 2){
-				window.location.href	 =	"{{ URL('invoice') }}/"+datas['invoiceId'];
+				window.location.href	 =	"<?php echo URL('invoice'); ?>/"+datas['invoiceId'];
 				
 			}else {
 				$('#loader_img').hide();
@@ -1722,7 +1806,7 @@ function createDonationEnquiry(){
 	var formData  = $('#inquiryForm')[0];
 	
 	$.ajax({
-		url: '{{ route("User.saveEnquiry") }}',
+		url: '<?php echo route("User.saveEnquiry"); ?>',
 		type:'POST',
 		data: $('#inquiryForm').serialize(),
 		data: new FormData(formData),
@@ -1734,7 +1818,7 @@ function createDonationEnquiry(){
 			error_array 	= 	JSON.stringify(r);
 			datas			=	JSON.parse(error_array);
 			if(datas['success'] == 1) {
-				window.location.href	 =	"{{ URL('/dashboard') }}";
+				window.location.href	 =	"<?php echo URL('/dashboard'); ?>";
 			}else if(datas['success'] == 2) {
 				$('#sign_up_popup').modal({backdrop: 'static', keyboard: false}) 
 				window.localStorage.setItem('isDashboard', '1');
@@ -2076,7 +2160,7 @@ $(document.body).on('click', '.payment_method_change' ,function(){
 
 $(".payment_amount_blk").hide();
 $(".form-control").on('blur', function(){
-	var Currency	=	"{{Currency}}";
+	var Currency	=	"<?php echo Currency; ?>";
 	var planType = $(".change_plan_type").val();
 	if(typeof planType !== "undefined"){
 		planType = planType.toLowerCase().replace(/\b[a-z]/g, function(letter) {
@@ -2297,7 +2381,7 @@ function addMoreSectionParticipate(){
 	} 
 	
 	$.ajax({
-		url:'{{ route("user.add_more_section_participate") }}',
+		url:'<?php echo route("user.add_more_section_participate"); ?>',
 		'type':'post',
 		data:{'counter':counter, 'subProjectId':subProjectId},
 		success:function(response){

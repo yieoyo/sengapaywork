@@ -588,13 +588,11 @@
 												<td data-field="Status" class="kt-datatable__cell">
 													<span style="width: 120px;">
 													<?php if($recentAllOrder->main_payment_status == 1): ?>
-														<span class="kt-badge  kt-badge--warning kt-badge--inline kt-badge--pill"><?php echo trans('messages.dashboard.waiting_approval'); ?></span>
-													<?php elseif($recentAllOrder->main_payment_status == 2): ?>
 														<span class="kt-badge  kt-badge--info kt-badge--inline kt-badge--pill"><?php echo trans('messages.dashboard.success'); ?></span>
-													<?php elseif($recentAllOrder->main_payment_status == 3): ?>
+													<?php elseif($recentAllOrder->main_payment_status == 2): ?>
 														<span class="kt-badge  kt-badge--warning kt-badge--inline kt-badge--pill"><?php echo trans('messages.dashboard.pending'); ?></span>
-													<?php elseif($recentAllOrder->main_payment_status == 5): ?>
-														<span class="kt-badge  kt-badge--primary kt-badge--inline kt-badge--pill"><?php echo trans('messages.dashboard.expired'); ?></span>
+													<?php elseif($recentAllOrder->main_payment_status == 0): ?>
+														<span class="kt-badge  kt-badge--danger kt-badge--inline kt-badge--pill"><?php echo trans('messages.dashboard.expired'); ?></span>
 													<?php else: ?>
 														<span class="kt-badge  kt-badge--danger kt-badge--inline kt-badge--pill"><?php echo trans('messages.dashboard.not_paid'); ?></span>
 													<?php endif; ?>
@@ -726,13 +724,11 @@
 												<td data-field="Status" class="kt-datatable__cell">
 													<span style="width: 120px;">
 													<?php if($record->main_payment_status == 1): ?>
-														<span class="kt-badge  kt-badge--warning kt-badge--inline kt-badge--pill"><?php echo trans('messages.dashboard.waiting_approval'); ?></span>
+													<span class="kt-badge  kt-badge--info kt-badge--inline kt-badge--pill"><?php echo trans('messages.dashboard.success'); ?></span>
 													<?php elseif($record->main_payment_status == 2): ?>
-														<span class="kt-badge  kt-badge--info kt-badge--inline kt-badge--pill"><?php echo trans('messages.dashboard.success'); ?></span>
-													<?php elseif($record->main_payment_status == 3): ?>
 														<span class="kt-badge  kt-badge--warning kt-badge--inline kt-badge--pill"><?php echo trans('messages.dashboard.pending'); ?></span>
-													<?php elseif($record->main_payment_status == 5): ?>
-														<span class="kt-badge  kt-badge--primary kt-badge--inline kt-badge--pill"><?php echo trans('messages.dashboard.expired'); ?></span>
+													<?php elseif($record->main_payment_status == 0): ?>
+														<span class="kt-badge  kt-badge--danger kt-badge--inline kt-badge--pill"><?php echo trans('messages.dashboard.expired'); ?></span>
 													<?php else: ?>
 														<span class="kt-badge  kt-badge--danger kt-badge--inline kt-badge--pill"><?php echo trans('messages.dashboard.not_paid'); ?></span>
 													<?php endif; ?>
@@ -863,17 +859,15 @@
 												</td>
 												<td data-field="Status" class="kt-datatable__cell">
 													<span style="width: 120px;">
-													<?php if($record->main_payment_status == 1): ?>
-														<span class="kt-badge  kt-badge--warning kt-badge--inline kt-badge--pill"><?php echo trans('messages.dashboard.waiting_approval'); ?></span>
-													<?php elseif($record->main_payment_status == 2): ?>
+														<?php if($record->main_payment_status == 1): ?>
 														<span class="kt-badge  kt-badge--info kt-badge--inline kt-badge--pill"><?php echo trans('messages.dashboard.success'); ?></span>
-													<?php elseif($record->main_payment_status == 3): ?>
-														<span class="kt-badge  kt-badge--warning kt-badge--inline kt-badge--pill"><?php echo trans('messages.dashboard.pending'); ?></span>
-													<?php elseif($record->main_payment_status == 5): ?>
-														<span class="kt-badge  kt-badge--primary kt-badge--inline kt-badge--pill"><?php echo trans('messages.dashboard.expired'); ?></span>
-													<?php else: ?>
-														<span class="kt-badge  kt-badge--danger kt-badge--inline kt-badge--pill"><?php echo trans('messages.dashboard.not_paid'); ?></span>
-													<?php endif; ?>
+														<?php elseif($record->main_payment_status == 2): ?>
+															<span class="kt-badge  kt-badge--warning kt-badge--inline kt-badge--pill"><?php echo trans('messages.dashboard.pending'); ?></span>
+														<?php elseif($record->main_payment_status == 0): ?>
+															<span class="kt-badge  kt-badge--danger kt-badge--inline kt-badge--pill"><?php echo trans('messages.dashboard.expired'); ?></span>
+														<?php else: ?>
+															<span class="kt-badge  kt-badge--danger kt-badge--inline kt-badge--pill"><?php echo trans('messages.dashboard.not_paid'); ?></span>
+														<?php endif; ?>
 													</span>
 												</td>
 												<td data-field="Actions" class="kt-datatable__cell">
@@ -1001,17 +995,15 @@
 												</td>
 												<td data-field="Status" class="kt-datatable__cell">
 													<span style="width: 120px;">
-													<?php if($record->main_payment_status == 1): ?>
-														<span class="kt-badge  kt-badge--warning kt-badge--inline kt-badge--pill"><?php echo trans('messages.dashboard.waiting_approval'); ?></span>
-													<?php elseif($record->main_payment_status == 2): ?>
+														<?php if($record->main_payment_status == 1): ?>
 														<span class="kt-badge  kt-badge--info kt-badge--inline kt-badge--pill"><?php echo trans('messages.dashboard.success'); ?></span>
-													<?php elseif($record->main_payment_status == 3): ?>
-														<span class="kt-badge  kt-badge--warning kt-badge--inline kt-badge--pill"><?php echo trans('messages.dashboard.pending'); ?></span>
-													<?php elseif($record->main_payment_status == 5): ?>
-														<span class="kt-badge  kt-badge--primary kt-badge--inline kt-badge--pill"><?php echo trans('messages.dashboard.expired'); ?></span>
-													<?php else: ?>
-														<span class="kt-badge  kt-badge--danger kt-badge--inline kt-badge--pill"><?php echo trans('messages.dashboard.not_paid'); ?></span>
-													<?php endif; ?>
+														<?php elseif($record->main_payment_status == 2): ?>
+															<span class="kt-badge  kt-badge--warning kt-badge--inline kt-badge--pill"><?php echo trans('messages.dashboard.pending'); ?></span>
+														<?php elseif($record->main_payment_status == 0): ?>
+															<span class="kt-badge  kt-badge--danger kt-badge--inline kt-badge--pill"><?php echo trans('messages.dashboard.expired'); ?></span>
+														<?php else: ?>
+															<span class="kt-badge  kt-badge--danger kt-badge--inline kt-badge--pill"><?php echo trans('messages.dashboard.not_paid'); ?></span>
+														<?php endif; ?>
 													</span>
 												</td>
 												<td data-field="Actions" class="kt-datatable__cell">
