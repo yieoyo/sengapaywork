@@ -1,0 +1,242 @@
+
+##############################################################
+<div class="kt-wizard-v4__content" data-ktwizard-type="step-content" data-ktwizard-state="current">
+	<div class="kt-heading kt-heading--md">{{ trans("messages.sub_project_detail.select_payment_details")}}</div>
+	<div class="kt-form__section kt-form__section--first">
+		<div class="kt-wizard-v4__form">
+		
+			<div class="form-group form-group-marginless">
+				<label>{{ trans("messages.sub_project_detail.choose_payment_option")}}:</label>
+				<div class="row">
+				<div class="col-sm-6">
+					<label class="kt-option">
+						<span class="kt-option__control">
+							<span class="kt-radio">
+								{{ Form::radio('payment_methods',0,1,['class'=>'payment_methods_change']) }}
+								<span></span>
+							</span>
+						</span>
+						<span class="kt-option__label">
+							<span class="kt-option__head">
+								<span class="kt-option__title">
+									SenangPay <!--(Recurring)-->
+								</span>
+								
+							</span>
+							<span class="kt-option__body">
+								senang
+							</span>
+						</span>
+					</label>
+				</div>
+				@if(!empty($paymentMethods))
+					<div class="dynamic_plan_option_block">
+						<div class="form-group">
+							<div class="kt-portlet__tab_block_options">
+								@foreach($paymentMethods as $paymentMethod)
+									@if($paymentMethod->id == 11)
+									<div class="kt-portlet__tab_block_options_item">
+										{{ Form::radio('senang_type','onetime', 1, ['class'=>'senang_type', 'id'=>'tab_onetime']) }}
+										<label for="tab_onetime">{{ trans("messages.sub_project_detail.ONETIME")}}</label>
+									</div>
+									@endif
+									
+									@if(in_array($paymentMethod->id, [12,13]))
+									<div class="kt-portlet__tab_block_options_item">
+										{{ Form::radio('senang_type','recurring',0, ['class'=>'senang_type', 'id'=>'tab_recurring']) }}
+										<label for="tab_recurring">{{ trans("messages.sub_project_detail.RECURRING")}}</label>
+									</div>
+									<?php break; ?>
+									@endif
+
+								@endforeach
+							
+							</div>
+
+							<div>
+								<div class="tab_onetime kt-portlet__tab_block_options" >
+									<div class="">
+										{{ Form::radio('payment_method', 11 , 1, ['class'=>'senang_types', 'id'=>'tab_fixed_onetime']) }}
+										<label for="tab_onetime">{{ trans("messages.sub_project_detail.FIXEDPAY")}}</label>
+									</div>
+								</div>
+								<div class="tab_recurring d-none">
+									<div class="form-group">
+										@foreach($paymentMethods as $paymentMethod)
+										@if ($paymentMethod->id == 12)
+										
+										<?php $installmentActive = true; ?>
+											<div class="">
+												{{ Form::radio('payment_method', 12, 1, ['class'=>'senang_retype', 'id'=>'tab_installment']) }}
+												<label for="tab_installment">{{ trans("messages.sub_project_detail.INSTALLMENT")}}</label>
+											</div>
+										@endif
+										@if ($paymentMethod->id == 13)
+										
+										<?php $subscriptionActive = true; ?>
+											<div class="">
+												{{ Form::radio('payment_method', 13, $installmentActive ? 0:1, ['class'=>'senang_retype', 'id'=>'tab_subscription']) }}
+												<label for="tab_subscription">{{ trans("messages.sub_project_detail.SUBSCRIPTION")}}</label>
+											</div>
+											
+										@endif
+										@endforeach
+									</div>
+									<div>
+										
+										@if ($installmentActive)
+										<div class="tab_installment">
+											<div class="form-group">
+												<label for="dropdownNumbers">Number of Installment:</label>
+												<select class="form-control" id="dropdownNumbers" name="numberOfInstallment">
+													@for ($i = 1; $i <= 12; $i++)
+														<option value="{{ $i }}">{{ $i }}</option>
+													@endfor
+												</select>
+											</div>
+											<div class="form-group">
+												<label for="dropdown">Select Frequency:</label>
+												<select class="form-control" id="dropdownFrequency">
+													<option value="1">Monthly</option>
+													<option value="2">Quarterly</option>
+													<option value="3">Biannually</option>
+													<option value="4">Yearly</option>
+												</select>
+											</div>
+
+											<div class="form-group">
+												<label for="dropdownNumbers">Date charging occured:</label>
+												<select class="form-control" id="dropdownNumbers">
+													@for ($i = 1; $i <= 28; $i++)
+														<option value="{{ $i }}">{{ $i }}</option>
+													@endfor
+												</select>
+											</div>
+										</div>
+										
+											
+										@endif
+										@if ($subscriptionActive)
+										<div class="tab_subscription <?php echo $installmentActive ? 'd-none':'' ; ?>">
+											
+											<div class="form-group">
+												<label for="dropdown">Select Frequency:</label>
+												<select class="form-control" id="dropdownFrequency">
+													<option value="1">Monthly</option>
+													<option value="2">Quarterly</option>
+													<option value="3">Biannually</option>
+													<option value="4">Yearly</option>
+												</select>
+											</div>
+											<div class="form-group">
+												<label for="dropdownNumbers">Date charging occured:</label>
+												<select class="form-control" id="dropdownNumbers">
+													@for ($i = 1; $i <= 28; $i++)
+														<option value="{{ $i }}">{{ $i }}</option>
+													@endfor
+												</select>
+											</div>
+										</div>																				
+										@endif
+									</div>
+								</div>
+							</div>
+						
+						</div>
+
+
+					</div>
+				@endif
+				</div>
+			</div>
+			
+			<div class="form-group"></div>
+			
+		</div>
+	</div>
+</div>
+
+###############################################################
+$(document.body).on('click', '.plan_price' ,function(){
+//$(".plan_price").click(function(){
+	$(".plan_price").removeAttr('checked');
+	$(this).attr('checked', 'checked');
+	if ($(this).is(':checked')){
+		 var radioID = $(this).attr('id');
+        $("label").each(function(ind, elm){
+          if ($(elm).prop("for") == radioID){
+            $(".plan_price").text($(elm).text());
+            $(".selected_plan_price").text($(elm).text());
+          }
+        });
+		//for customized plan 
+		$(".customized_plan").val('');
+		if($(this).val() == "other"){
+			$(".customized_plan_cls").show();
+		}else{
+			$(".customized_plan_cls").hide();
+		}
+	}
+})
+
+
+$(document.body).on('click', '.senang_type' ,function(){
+	$(".senang_type").removeAttr('checked');
+	$(this).attr('checked', 'checked');
+	if ($(this).is(':checked')){
+		 var radioID = $(this).attr('id');
+		 
+		if(radioID == 'tab_onetime'){
+			$(".tab_onetime").removeClass('d-none');
+			$(".tab_recurring").addClass('d-none');
+		} else {
+			$(".tab_onetime").addClass('d-none');
+			$(".tab_recurring").removeClass('d-none');
+		}
+	}
+})
+
+$(document.body).on('click', '.senang_retype' ,function(){
+	$(".senang_retype").removeAttr('checked');
+	$(this).attr('checked', 'checked');
+	if ($(this).is(':checked')){
+		 var radioID = $(this).attr('id');
+		 
+		if(radioID == 'tab_installment'){
+			$(".tab_installment").removeClass('d-none');
+			$(".tab_subscription").addClass('d-none');
+		} else {
+			$(".tab_installment").addClass('d-none');
+			$(".tab_subscription").removeClass('d-none');
+		}
+	}
+})
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if(in_array(Input::get('payment_option'), [11,12,13])){
+				
+				// senangpay detail			
+				$paymentSecretKey = Config::get("Settings.payment_secret_key"); 
+				$paymentMerchantId = Config::get("Settings.payment_merchant_id");
+				$paymentUrl = '';
+				// one time payment
+				if(Input::get('payment_option') == 11){
+					// payload for payment url
+					$detail = urldecode($subProjectDetails->sub_project_name);
+					$amount = urldecode($orderDetails->plan_price);
+					$order_id = urldecode($orderDetails->id);
+					$name = urldecode($orderDetails->full_name);
+					$email = urldecode($orderDetails->email);
+					$phone = urldecode($orderDetails->phone);
+					// Generate the hashed string
+					$hashed_string = hash_hmac('sha256', $paymentSecretKey . $detail . $amount . $order_id, $paymentSecretKey);
+
+					// Construct the payment URL
+					$paymentUrl = "{$paymentMerchantId}?detail={$detail}&amount={$amount}&order_id={$order_id}&name={$name}&email={$email}&phone={$phone}&hash={$hashed_string}";
+				}
+				if(Input::get('payment_option') == 12){}
+				if(Input::get('payment_option') == 13){}
+				
+				// api payload
+				$hostBill = 'https://sandbox.senangpay.my/payment/' . $paymentUrl;

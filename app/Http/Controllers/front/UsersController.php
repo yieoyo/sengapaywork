@@ -871,7 +871,7 @@ class UsersController extends BaseController {
 			$orderDetails = DonationOrder::where('id',Input::get('order_id'))->first();
 			$OrderId = $orderDetails->id;
 			
-			$subProjectDetails = SubProject::select('id','project_module','customize_plan_option')->where('id',$orderDetails->sub_project_id)->first();
+			$subProjectDetails = SubProject::select('id','project_id','sub_project_name','project_module','customize_plan_option', 'slug')->where('id',$orderDetails->sub_project_id)->first();
 			
 			if($subProjectDetails->project_module == 1){
 				if(!empty($orderDetails->plan_price)){
@@ -913,62 +913,73 @@ class UsersController extends BaseController {
 				die;
 			}
 			
-			if(Input::get('payment_option') == 5){
+			if(in_array(Input::get('payment_option'), [11,12,13])){
 				
-				$api_key = Config::get("Settings.payment_secret_key"); //'af6b3ddc-5152-4852-b3b8-5605aed427a1';
-				$paymentCollectionId = Config::get("Settings.payment_collection_id");
-				
-				//create collection if not found/empty
-				if(empty($paymentCollectionId)){
-					
-					//$host = 'https://www.billplz.com/api/v4/webhook_rank';
-					//$host = 'https://www.billplz.com/api/v3/collections/dfza4e2q'; 
-					$host = 'https://www.billplz.com/api/v3/collections';
-					
-					//create collection id
-					$process = curl_init($host);
-					
-					$postdata = Array(
-									  'title' => 'Hidayah Center Foundation',
-									  'logo' => ''
-									);
-					
-					curl_setopt($process, CURLOPT_USERPWD, $api_key . ":");
-					curl_setopt($process, CURLOPT_POSTFIELDS, $postdata);
-					curl_setopt($process, CURLOPT_RETURNTRANSFER, true);
-					$return = curl_exec($process);
-					$collectionArray = json_decode($return);
-					
-					//pr($collectionArray); die;
-					$paymentCollectionId = $collectionArray->id;
-					
+				// senangpay detail			
+				$paymentSecretKey = Config::get("Settings.payment_secret_key"); 
+				$paymentMerchantId = Config::get("Settings.payment_merchant_id");
+				$paymentUrl = '';
+				$projectFather = Project::where('id', $subProjectDetails->project_id)->first();
+				$senangPayApi = 'https://api.sandbox.senangpay.my/';
+
+				// payload
+				$detail = urldecode($projectFather->name);
+				$description = urldecode($subProjectDetails->sub_project_name);
+				$amount = urldecode($totalPrice);
+				$order_id = urldecode($orderDetails->id);
+				$name = urldecode($orderDetails->full_name);
+				$email = urldecode($orderDetails->email);
+				$phone = urldecode($orderDetails->phone);
+
+				////////////////////
+				// one time
+				if(Input::get('payment_option') == 11){
+					// Generate the hashed string
+					$hashed_string = hash_hmac('sha256', $paymentSecretKey . $detail . $amount . $order_id, $paymentSecretKey);
+
+					// Construct the payment URL
+					$paymentUrl = "{$paymentMerchantId}?detail={$detail}&amount={$amount}&order_id={$order_id}&name={$name}&email={$email}&phone={$phone}&hash={$hashed_string}";
 				}
-				
-				
-				//bill generate
-				$hostBill = 'https://www.billplz.com/api/v3/bills';
-				$process = curl_init($hostBill);
-				
-				$totalPrice = $planPrice * 100;
-				$callbackUrl	=	WEBSITE_URL.'payment-success';
-				
-				$postdata = Array(
-								  'collection_id' => $paymentCollectionId,
-								  'email' => $orderDetails->email,
-								  'mobile' => $orderDetails->phone,
-								  'name' => $orderDetails->full_name,
-								  'amount' => $totalPrice,
-								  'callback_url' => $callbackUrl,
-								  'redirect_url' => $callbackUrl,
-								  'description' => $paymentCollectionId
-								);
-				
-				curl_setopt($process, CURLOPT_USERPWD, $api_key . ":");
-				curl_setopt($process, CURLOPT_POSTFIELDS, $postdata);
-				curl_setopt($process, CURLOPT_RETURNTRANSFER, true);
-				$response = curl_exec($process);
-				$paymentArray = json_decode($response); 
-				
+				// installment
+				if(Input::get('payment_option') == 12){
+					// create product
+					$senangpayPayload = [
+						'name' => urldecode($projectFather->name),
+						'price' => urldecode($totalPrice),
+						'code' => urldecode($orderDetails->id),
+						'description' => urldecode($subProjectDetails->sub_project_name),
+						'info_url' => urlencode('http://sengapaywork.test/project-detail/' . $subProjectDetails->slug),
+						'sst' => urlencode(0),
+						'display_address' => urlencode(0),
+						'recurring_type' => urlencode('INSTALLMENT'),
+						'frequency' => urlencode(Input::get('payment_frequency')),
+						'repitition' => urlencode(Input::get('payment_repitition')),
+						'billing_day' => urlencode(Input::get('payment_billing_day')),
+						'hash' => hash_hmac('sha256', $paymentSecretKey . urlencode($subProjectDetails->sub_project_name) . urldecode($totalPrice) . urldecode($orderDetails->id)),
+					];
+					// Initialize cURL session
+					$ch = curl_init('https://api.sandbox.senangpay.my/recurring/product/create');
+
+					// Set cURL options
+					curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+					curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+					curl_setopt($ch, CURLOPT_USERPWD, "$paymentMerchantId:");
+					curl_setopt($ch, CURLOPT_POST, true);
+					curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($senangpayPayload));
+					// Execute cURL request
+					$response = curl_exec($ch);
+					curl_close($ch);
+					$responseData = json_decode($response, true);
+					if ($responseData['result'] == 1) {
+						$billUrl = $responseData['recurring_id'];
+						DonationOrder::where('id',$OrderId)->update(array('bill_id'=> $responseData['recurring_id']));
+					}
+					$paymentUrl = 'https://sandbox.senangpay.my/payment/' . $SubProjectPlan->senangpay_id . '?name=' . $orderDetails->full_name . '&email=' . $orderDetails->email . '&phone=' . $orderDetails->phone . '&hash=' . hash('sha256', $paymentSecretKey . $SubProjectPlan->senangpay_id . $orderDetails->id);
+				}
+				// suscription
+				if(Input::get('payment_option') == 13){
+
+				}
 				//pr($paymentArray); die;
 				if(isset($paymentArray->error)){
 					
