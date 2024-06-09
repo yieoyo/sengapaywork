@@ -1,4 +1,0 @@
-<?php echo Config::get('Settings.email_header');; ?>
-
-<?php echo $messageBody; ?>
-<?php echo Config::get('Settings.email_footer');; ?>

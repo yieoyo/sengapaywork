@@ -42,8 +42,7 @@ use App\Model\AdminLanguageSetting;
 use Illuminate\Routing\Route;
 
 
-use Auth, Blade, Config, Cache, Cookie, DB, File, Hash, Input, Mail, mongoDate, Redirect, Request, Response, Session, URL, View, Validator, App, Billplz;
-
+use Auth, Blade, Config, Cache, Cookie, DB, File, Hash, Input, Mail, mongoDate, Redirect, Request, Response, Session, URL, View, Validator, App;
 class UsersController extends BaseController
 {
 
@@ -598,9 +597,8 @@ class UsersController extends BaseController
 				$packageCollectionId = Package::where('id', $packageId)->pluck('collection_id');
 				if (empty($packageCollectionId)) {
 
-					//$host = 'https://www.billplz.com/api/v4/webhook_rank';
+					
 					$host = 'https://www.billplz.com/api/v3/collections';
-					//$host = 'https://www.billplz.com/api/v3/collections/dfza4e2q'; 
 
 					//create collection id
 					$process = curl_init($host);
@@ -795,7 +793,7 @@ class UsersController extends BaseController
 		$PaymentId = !empty(Input::get('PaymentId')) ? Input::get('PaymentId') : 0;
 		$orderDetails = DonationOrder::where('id', $orderId)->first();
 
-		$subProjectDetails = SubProject::select('id', 'project_module', 'customize_plan_option')->where('id', $orderDetails->sub_project_id)->first();
+		$subProjectDetails = SubProject::select('id','payment_method', 'project_module', 'customize_plan_option')->where('id', $orderDetails->sub_project_id)->first();
 
 		if ($subProjectDetails->project_module == 1) {
 			if (!empty($orderDetails->plan_price)) {
@@ -829,8 +827,9 @@ class UsersController extends BaseController
 				  $planPrice	=	$orderDetails->other_plan_price;
 			  } */
 
-		$paymentOptions = PaymentOption::where('is_active', 1)->orderBy('id', 'ASC')->get();
-
+			 
+		$paymentMethodArray = explode(',', $subProjectDetails->payment_method);
+		$paymentOptions = PaymentOption::whereIn('id', $paymentMethodArray)->where('is_active', 1)->orderBy('id', 'ASC')->get();
 		$userId = !empty($orderDetails) ? ($orderDetails->user_id) : 0;
 
 		return View::make('front.user.get_final_payments_popup', compact("orderDetails", "planPrice", "paymentOptions", "PaymentId"));
@@ -920,88 +919,7 @@ class UsersController extends BaseController
 				die;
 			}
 
-			if (in_array(Input::get('payment_option'), [11, 12, 13])) {
-				// senangpay detail			
-				$paymentSecretKey = Config::get("Settings.payment_secret_key");
-				$paymentMerchantId = Config::get("Settings.payment_merchant_id");
-				$paymentUrl = "";
-				$projectFather = Project::where('id', $subProjectDetails->project_id)->first();
-				$senangPayApi = 'https://api.sandbox.senangpay.my/';
-				$senangProductId = '';
-				$response = array();
-
-				// payload
-				$projectName = urldecode($projectFather->name);
-				$description = urldecode($subProjectDetails->sub_project_name);
-				$amount = urldecode((float) $planPrice * 100);
-				$order_id = urldecode($orderDetails->id);
-				$name = urldecode($orderDetails->full_name);
-				$email = urldecode($orderDetails->email);
-				$phone = urldecode($orderDetails->phone);
-
-				// one time
-				if (Input::get('payment_option') == 11) {
-					// Generate the hashed string
-					$hashed_string = hash_hmac('sha256', $paymentSecretKey . $description . $amount . $order_id, $paymentSecretKey);
-
-					// Construct the payment URL
-					$paymentUrl = "{$paymentMerchantId}?detail={$description}&amount={$amount}&order_id={$order_id}&name={$name}&email={$email}&phone={$phone}&hash={$hashed_string}";
-				}
-				// installment
-				if (Input::get('payment_option') == 12) {
-					// create product
-					$senangpayPayload = [
-						'name' => $projectName,
-						'price' => $amount,
-						'code' => urldecode($orderDetails->id),
-						'description' => $description,
-						'info_url' => urlencode('http://sengapaywork.test/project-detail/' . $subProjectDetails->slug),
-						'sst' => urlencode(0),
-						'display_address' => urlencode(0),
-						'recurring_type' => urlencode('INSTALLMENT'),
-						'frequency' => urlencode(Input::get('payment_frequency')),
-						'repitition' => urlencode(Input::get('payment_repitition')),
-						'billing_day' => urlencode(Input::get('payment_billing_day')),
-						'hash' => hash_hmac('sha256', $paymentSecretKey . urlencode($description) . urldecode($amount) . urldecode($orderDetails->id)),
-					];
-					// Initialize cURL session
-					$ch = curl_init('https://api.sandbox.senangpay.my/recurring/product/create');
-
-					// Set cURL options
-					curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-					curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
-					curl_setopt($ch, CURLOPT_USERPWD, "$paymentMerchantId:");
-					curl_setopt($ch, CURLOPT_POST, true);
-					curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($senangpayPayload));
-					// Execute cURL request
-					$response = curl_exec($ch);
-					curl_close($ch);
-					$responseData = json_decode($response, true);
-					if ($responseData['result'] == 1) {
-						$senangProductId = $responseData['recurring_id'];
-						$paymentUrl = 'https://sandbox.senangpay.my/payment/' . urlencode($responseData['recurring_id']) . '?name=' . $name . '&email=' . $email . '&phone=' . $phone . '&hash=' . hash('sha256', $paymentSecretKey . $responseData['recurring_id'] . $orderDetails->id);
-					} else {
-						$response['success'] = 1;
-						$response['message'] = trans("Failed to connect with Senangpay.");
-					}
-
-				}
-				// suscription
-				if (Input::get('payment_option') == 13) {
-				}
-				//pr($paymentArray); die;
-				if (!empty($senangProductId)) {
-					if (in_array(Input::get('payment_option'), [12, 13])) {
-						DonationOrder::where('id', $OrderId)->update(array('bill_id' => $senangProductId));
-					}
-				}
-
-				$response['billUrl'] = $senangPayApi . $paymentUrl;
-				$response['success'] = 2;
-				$response['message'] = trans("Payment request send successfully.");
-				return Response::json($response);
-				die;
-			} else {
+			if (!in_array(Input::get('payment_option'), [11, 12, 13])) {
 				$receiptFile = "";
 				if (!empty(Input::file('receipt'))) {
 					$file_name = str_replace(" ", "_", Input::file('receipt')->getClientOriginalName());
@@ -3885,54 +3803,131 @@ class UsersController extends BaseController
 	}
 
 
-	public function PaymentSuccess()
+	public function PaymentWebHook()
 	{
 		$thisData = Input::all();
-		//$userId							=	Auth::user()->id;
-		//$thisData = array('billplz' => array('id' => '75ucp0zr'));
-		//pr($thisData); die;
+		$status_id = $thisData['status_id'];
+		$order_id = $thisData['order_id'];
+		$transaction_id = $thisData['transaction_id'];
+		$msg = $thisData['msg'];
+		$hash = $thisData['hash'];
+
 		if (!empty($thisData)) {
-			if (!empty($thisData['billplz']) && !empty($thisData['billplz']['id'])) {
-				$api_key = Config::get("Settings.payment_secret_key"); //'af6b3ddc-5152-4852-b3b8-5605aed427a1';
+			if (!empty($status_id) && !empty($order_id) && !empty($transaction_id) && !empty($msg) && !empty($hash)) {
+				$order = DonationOrder::where('id', $order_id)->first();
+				$billID = false;
+				if($order){
+					$curl = curl_init();
+					$paymentSecretKey = Config::get("Settings.payment_secret_key");
+					$paymentMerchantId = Config::get("Settings.payment_merchant_id");
+					$hash_string =  hash_hmac('sha256',$paymentMerchantId.$paymentSecretKey.$transaction_id, $paymentSecretKey);
+					curl_setopt_array($curl, array(
+					CURLOPT_URL => 'https://sandbox.senangpay.my/apiv1/query_transaction_status?merchant_id='.$paymentMerchantId.'&transaction_reference='.$transaction_id.'&hash='.$hash_string,
+					CURLOPT_RETURNTRANSFER => true,
+					CURLOPT_MAXREDIRS => 10,
+					CURLOPT_TIMEOUT => 0,
+					CURLOPT_FOLLOWLOCATION => true,
+					CURLOPT_CUSTOMREQUEST => 'GET',
+					));
 
-				$billID = $thisData['billplz']['id'];
-				$host = 'https://www.billplz.com/api/v3/bills/' . $billID;
+					$response = curl_exec($curl);
 
-				//get success bill response
-				$process = curl_init($host);
+					curl_close($curl);
+					$response = json_decode($response, true);
 
-				curl_setopt($process, CURLOPT_USERPWD, $api_key . ":");
-				curl_setopt($process, CURLOPT_RETURNTRANSFER, true);
-				$response = curl_exec($process);
+					// Check if response status is successful
+					if ($response && isset($response['status']) && $response['status'] === 1 && isset($response['data'][0]) && isset($response['data'][0]['order_detail']['grand_total']) && $response['data'][0]['order_detail']['grand_total'] > 0) {
+						// Extract data
+						$payment_status = $response['data'][0]['payment_info']['status'];
+						$unit_price = $response['data'][0]['order_detail']['unit_price'];
+						$grand_total = $response['data'][0]['order_detail']['grand_total'];
 
-				$paymentArray = json_decode($response);
-				//pr($paymentArray); die;
-				if (isset($paymentArray->error)) {
-					$errorType = $paymentArray->error->type;
-					$errorMessage = $paymentArray->error->message;
-					return View::make('front.user.payment_error_page', compact("errorType", "errorMessage"));
-				} else {
-					$billUrl = $paymentArray->url;
-					$billId = $paymentArray->id;
-					if (!empty($paymentArray->paid_amount)) {
-						$paidAmount = ($paymentArray->paid_amount / 100);
-					} else {
-						$paidAmount = $paymentArray->paid_amount;
-					}
-
-					$paymentDetails = DonationPayment::where('invoice_id', $billId)->first();
-					if (!empty($paymentDetails)) {
-						if ($paymentArray->state != "due") {
-							DonationPayment::where('id', $paymentDetails->id)->update(array('payment_status' => 2));
+						if ($payment_status == 'paid') {
+							$status = 2;
+						} else {
+							$status = 4;
 						}
-						return Redirect::to('/invoice/' . $billId);
+
+						
+						$paymentDetails = DonationPayment::where('order_id', $order_id)->first();
+						if($paymentDetails){
+							if($paymentDetails->payment_status == 2) {
+								//Create new donation payment
+								$billID = $order->bill_id;
+								$donationPayment = new DonationPayment;
+								$donationPayment->order_id = $order->id;
+								$donationPayment->sub_project_id = $order->sub_project_id;
+								$donationPayment->payment_option = $order->payment_method;
+								$donationPayment->invoice_id = $order->unique_donation_id;
+								$donationPayment->reference_id = $transaction_id;
+								$donationPayment->receipt = "";
+								$donationPayment->amount = $grand_total;
+								$donationPayment->payment_status = $status;
+								$donationPayment->save();
+							} else {
+								//Update existing Donation Payment as its the first payment
+								$dp = DonationPayment::where('id', $paymentDetails->id)->update(array('payment_status' => 2, 'amount'=>$grand_total, 'reference_id'=>$transaction_id));
+							}
+						}
+					}
+				}
+			}
+		}
+		echo "OK";
+	}
+	public function PaymentSuccess()
+	{
+		//https://tyrostudio.com/senanghook.php?&status_id=1&order_id=9140&transaction_id=171793941592967328&msg=Payment_was_successful&hash=faad602ec60cd8527d0966f274c35c7ac0a188c33751108a83c2e8779c68d9fb
+		$thisData = Input::all();
+		$status_id = $thisData['status_id'];
+		$order_id = $thisData['order_id'];
+		$transaction_id = $thisData['transaction_id'];
+		$msg = $thisData['msg'];
+		$hash = $thisData['hash'];
+
+		if (!empty($thisData)) {
+			if (!empty($status_id) && !empty($order_id) && !empty($transaction_id) && !empty($msg) && !empty($hash)) {
+				$order = DonationOrder::where('id', $order_id)->first();
+				$billID = false;
+				if($order){
+					$curl = curl_init();
+					$paymentSecretKey = Config::get("Settings.payment_secret_key");
+					$paymentMerchantId = Config::get("Settings.payment_merchant_id");
+					$hash_string =  hash_hmac('sha256',$paymentMerchantId.$paymentSecretKey.$transaction_id, $paymentSecretKey);
+					curl_setopt_array($curl, array(
+					CURLOPT_URL => 'https://sandbox.senangpay.my/apiv1/query_transaction_status?merchant_id='.$paymentMerchantId.'&transaction_reference='.$transaction_id.'&hash='.$hash_string,
+					CURLOPT_RETURNTRANSFER => true,
+					CURLOPT_MAXREDIRS => 10,
+					CURLOPT_TIMEOUT => 0,
+					CURLOPT_FOLLOWLOCATION => true,
+					CURLOPT_CUSTOMREQUEST => 'GET',
+					));
+
+					$response = curl_exec($curl);
+
+					curl_close($curl);
+					$response = json_decode($response, true);
+
+					// Check if response status is successful
+					if ($response && isset($response['status']) && $response['status'] === 1 && isset($response['data'][0]) && isset($response['data'][0]['order_detail']['grand_total']) && $response['data'][0]['order_detail']['grand_total'] > 0) {
+						// Extract data
+						$payment_status = $response['data'][0]['payment_info']['status'];
+						$unit_price = $response['data'][0]['order_detail']['unit_price'];
+						$grand_total = $response['data'][0]['order_detail']['grand_total'];
+
+						if ($payment_status == 'paid') {
+							DonationPayment::where('order_id', $order_id)->update(array('payment_status' => 2, 'amount'=>$grand_total, 'reference_id'=>$transaction_id));
+						}
+						return Redirect::to('/invoice/' . $order->bill_id);
 					} else {
-						Session::flash('error', trans("Something went wrong! Payment Details Not Found."));
-						//return redirect()->back();
 						$errorType = "Payment Error";
 						$errorMessage = "Payment and Order response not getting.";
 						return View::make('front.user.payment_error_page', compact("errorType", "errorMessage"));
 					}
+
+				} else {
+					Session::flash('error', trans("Something went wrong! Payment Details Not Found."));
+					return Redirect::to('/dashboard');
 				}
 			} else {
 				Session::flash('error', trans("Something went wrong! Payment Details Not Found."));
@@ -7967,7 +7962,7 @@ class UsersController extends BaseController
 			$paymentMethods = PaymentOption::where('is_active', 1)->whereIn('id', $availablePaymnetMethodArray)->orderBy('id', 'ASC')->get();
 		}
 
-		return View::make('front.user.get_book_plan_modal', compact("subProjectDetails", "dailyPlanDetails", "dailyPeriodDetails", "paymentMethods", "projectPlans", "projectPlans", "seatReservationPlans", "quantityPlans", "sectionPlans", "danaDefaultPlans", "danaProperyPlans", "danaProperyPriceRanges", "vendorLists", "selectedDonationPlanData"));
+		return View::make('front.user.get_book_plan_modal', compact("subProjectDetails", "dailyPlanDetails", "dailyPeriodDetails", "paymentMethods", "projectPlans", "seatReservationPlans", "quantityPlans", "sectionPlans", "danaDefaultPlans", "danaProperyPlans", "danaProperyPriceRanges", "vendorLists", "selectedDonationPlanData"));
 	}
 
 	public function EditBookPlan($subProjectSlug = "", $orderId = "")
@@ -8323,7 +8318,7 @@ class UsersController extends BaseController
 			}
 			
 			// senangpay detail
-			$hostBill = 'https://sandbox.senangpay.my/payment/';
+			$senangPayApi = 'https://api.sandbox.senangpay.my/';
 			$billId = '';
 			$billUrl = '';
 			$paymentSecretKey = Config::get("Settings.payment_secret_key");
@@ -8342,9 +8337,9 @@ class UsersController extends BaseController
 			//create installment or recurring product on senangpay
 
 			if (in_array(Input::get('payment_method'), [12, 13])) {
-				// installment
+				// payload for creating senangpay product
+				$senangpayPayload = '';
 				if (Input::get('payment_method') == 12) {
-					// create product
 					$senangpayPayload = [
 						'name' => $projectFather->name,
 						'price' => $totalPrice,
@@ -8354,56 +8349,50 @@ class UsersController extends BaseController
 						'sst' => 0,
 						'display_address' => 0,
 						'recurring_type' => 'INSTALLMENT',
-						'frequency' => Input::get('numberOfFrequency'),
+						'frequency' => Input::get('paymentFrequency'),
 						'repitition' => Input::get('numberOfInstallment'),
 						'billing_day' => Input::get('dateCharging'),
 						'hash' => hash('sha256', $paymentSecretKey . $projectFather->name . $totalPrice . $model->id),
 					];
-					// $senangpayPayload = [
-					// 	'name' => $projectName,
-					// 	'price' => $amount,
-					// 	'code' => $order_id,
-					// 	'description' => $description,
-					// 	'info_url' => 'http://sengapaywork.test/project-detail/' . $subProjectDetails->slug,
-					// 	'sst' => urlencode(0),
-					// 	'display_address' => urlencode(0),
-					// 	'recurring_type' => urlencode('INSTALLMENT'),
-					// 	'frequency' => urlencode(Input::get('numberOfInstallment')),
-					// 	'repitition' => urlencode(Input::get('numberOfFrequency')),
-					// 	'billing_day' => urlencode(Input::get('dateCharging')),
-					// 	'hash' => hash_hmac('sha256', $paymentSecretKey . $projectFather->name . $totalPrice . $model->id, $paymentSecretKey),
-					// ];
-					// Initialize cURL session
-					$ch = curl_init('https://api.sandbox.senangpay.my/recurring/product/create');
+				}else {
+					$senangpayPayload = [
+						'name' => $projectFather->name,
+						'price' => $totalPrice,
+						'code' => $model->id,
+						'description' => $subProjectDetails->sub_project_name,
+						'info_url' => 'http://sengapaywork.test/project-detail/' . $subProjectDetails->slug,
+						'sst' => 0,
+						'display_address' => 0,
+						'recurring_type' => 'SUBSCRIPTION',
+						'frequency' => 1,
+						'repitition' => Input::get('numberOfInstallment'),
+						'billing_day' => Input::get('dateCharging'),
+						'customer_overwrite_price' => 0,
+						'customer_set_date' => 0,
+						'start_payment' => 0,
+						'hash' => hash('sha256', $paymentSecretKey . $projectFather->name . $totalPrice . $model->id),
+					];
+				}
 
-					// Set cURL options
-					curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-					curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
-					curl_setopt($ch, CURLOPT_USERPWD, "$paymentMerchantId:");
-					curl_setopt($ch, CURLOPT_POST, true);
-					curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($senangpayPayload));
-					// Execute cURL request
-					$response = curl_exec($ch);
-					curl_close($ch);
+				$ch = curl_init($senangPayApi. 'recurring/product/create');
 
-					$responseData = json_decode($response, true);
-					dump($responseData['result']);
-					if ($responseData['result'] == true) {
-						dump($billUrl);
-						dump($billId);
-						dump($paymentMerchantId);
-						dump($responseData['recurring_id'] .);
-						dump($model->id);
-						
-						$billUrl = 'https://api.sandbox.senangpay.my/recurring/payment/' . $paymentMerchantId . '?order_id='. $model->id. '&recurring_id='. $responseData['recurring_id'] .'name=' . $model->full_name . '&email=' . $model->email . '&phone=' . $model->phone . '&hash=' . hash_hmac('sha256', $paymentSecretKey . $responseData['recurring_id'] . $order->id,$paymentSecretKey );
-						$billId = $responseData['recurring_id'];
-						dump($billUrl);
-						dd($billId);
-					}
-					dd('hiukh');
+				// Set cURL options
+				curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+				curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+				curl_setopt($ch, CURLOPT_USERPWD, "$paymentMerchantId:");
+				curl_setopt($ch, CURLOPT_POST, true);
+				curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($senangpayPayload));
+				// Execute cURL request
+				$response = curl_exec($ch);
+				curl_close($ch);
+				$responseData = json_decode($response, true);
+				if ($responseData['result'] == true) {
+					$billId = $responseData['recurring_id'];
+					$secureHash = hash('sha256', $paymentSecretKey . $billId . $senangpayPayload['code']);
+					$billUrl = $senangPayApi. 'recurring/payment/' . urlencode($paymentMerchantId) . '?order_id=' . $order_id . '&recurring_id=' . urlencode($billId) . '&name=' . $name . '&email=' . $email . '&phone=' . $phone . '&hash=' . $secureHash;
+
 				}
 			}
-			
 			
 			//send sms
 			$phone = $model->phone;
@@ -8456,7 +8445,7 @@ class UsersController extends BaseController
 					$hashed_string = hash_hmac('sha256', $paymentSecretKey . $subProjectDetails->sub_project_name . $totalPrice . $model->id, $paymentSecretKey);
 
 					// Construct the payment URL
-					$billUrl = $hostBill . "{$paymentMerchantId}?detail={$description}&amount={$amount}&order_id={$order_id}&name={$name}&email={$email}&phone={$phone}&hash={$hashed_string}";
+					$billUrl = 'https://sandbox.senangpay.my/payment/' . "{$paymentMerchantId}?detail={$description}&amount={$amount}&order_id={$order_id}&name={$name}&email={$email}&phone={$phone}&hash={$hashed_string}";
 				}
 				DonationOrder::where('id', $modelId)->update(array('bill_id' => !empty($billId) ? $billId : $model->unique_donation_id));
 				
@@ -8769,107 +8758,13 @@ class UsersController extends BaseController
 				DonationOrder::where('id', $modelId)->update(array('deposite' => $totalPaidAmount));
 			}
 
-
-			/* $api_key = Config::get("Settings.payment_secret_key"); //'af6b3ddc-5152-4852-b3b8-5605aed427a1';
-					 $paymentCollectionId = Config::get("Settings.payment_collection_id");
-					 
-					 //create collection if not found/empty
-					 if(empty($paymentCollectionId)){
-						 
-						 //$host = 'https://www.billplz.com/api/v4/webhook_rank';
-						 //$host = 'https://www.billplz.com/api/v3/collections/dfza4e2q'; 
-						 $host = 'https://www.billplz.com/api/v3/collections';
-						 
-						 //create collection id
-						 $process = curl_init($host);
-						 
-						 $postdata = Array(
-										   'title' => 'Hidayah Center Foundation',
-										   'logo' => ''
-										 );
-						 
-						 curl_setopt($process, CURLOPT_USERPWD, $api_key . ":");
-						 curl_setopt($process, CURLOPT_POSTFIELDS, $postdata);
-						 curl_setopt($process, CURLOPT_RETURNTRANSFER, true);
-						 $return = curl_exec($process);
-						 $collectionArray = json_decode($return);
-						 
-						 //pr($collectionArray); die;
-						 $paymentCollectionId = $collectionArray->id;
-						 
-					 }
-					 
-					 
-					 //bill generate
-					 $hostBill = 'https://www.billplz.com/api/v3/bills';
-					 $process = curl_init($hostBill);
-					 $callbackUrl = WEBSITE_URL.'check-payment-success';
-					 
-					 $totalPrice = $activePlanPrice * 100;
-					 
-					 $postdata = Array(
-									   'collection_id' => $paymentCollectionId,
-									   'email' => $model->email,
-									   //'mobile' => $model->phone,
-									   'name' => $model->full_name,
-									   'amount' => $totalPrice,
-									   'callback_url' => $callbackUrl,
-									   'redirect_url' => $callbackUrl,
-									   'description' => $paymentCollectionId
-									 );
-					 
-					 curl_setopt($process, CURLOPT_USERPWD, $api_key . ":");
-					 curl_setopt($process, CURLOPT_POSTFIELDS, $postdata);
-					 curl_setopt($process, CURLOPT_RETURNTRANSFER, true);
-					 $response = curl_exec($process);
-					 $paymentArray = json_decode($response); 
-					 
-					 //pr($paymentArray); die;
-					 if(isset($paymentArray->error)){
-						 
-						 $errorType = $paymentArray->error->type;
-						 $errorMessage = $paymentArray->error->message;
-						 //return View::make('front.user.payment_error_page',compact("errorType","errorMessage"));
-						 
-						 $billId = "";
-						 $billUrl = "";
-					 }else{
-					 
-						 $billUrl = $paymentArray->url;
-						 $billId = $paymentArray->id;
-						 DonationOrder::where('id',$modelId)->update(array('bill_id'=>$billId));
-					 } */
-			//pr($billUrl); die;
-			$billUrl = "";
-			if ($model->payment_method == 5) {
-				//create payment transection whern online payment with status=0 and refrence_id=bill_id
-				/* if(!empty($billId)){
-								$donationPayment 					=  new DonationPayment;
-								$donationPayment->order_id			=  $modelId; 
-								$donationPayment->payment_option	=  $model->payment_method; 
-								$donationPayment->reference_id		=  $billId; 
-								$donationPayment->receipt			=  ""; 
-								$donationPayment->amount			=  $activePlanPrice; 
-								$donationPayment->payment_status	=  "0"; 
-								$donationPayment->save();
-							} */
-
-				$err = array();
-				$err['success'] = 1;
-				$err['message'] = trans("Donation added successfully.");
-				$err['billUrl'] = $billUrl;
-				$err['DonationOrderId'] = $model->unique_donation_id;
-				return Response::json($err);
-				die;
-			} else {
-				$err = array();
-				$err['success'] = 2;
-				$err['message'] = trans("Donation added successfully.");
-				$err['DonationOrderId'] = $model->unique_donation_id;
-				$err['billUrl'] = $billUrl;
-				return Response::json($err);
-				die;
-			}
+			$err = array();
+			$err['success'] = 2;
+			$err['message'] = trans("Donation added successfully.");
+			$err['DonationOrderId'] = $model->unique_donation_id;
+			$err['billUrl'] = $billUrl;
+			return Response::json($err);
+			die;
 		}
 	}
 

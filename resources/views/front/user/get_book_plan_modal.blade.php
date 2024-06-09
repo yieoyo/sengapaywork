@@ -1127,7 +1127,6 @@
 												<div class="form-group"></div>
 												
 												<div class="row">
-													<?php /* 
 													<div class="col-xl-6">
 														<div class="form-group">
 															<label>{{ trans("messages.sub_project_detail.address_optional")}}</label>
@@ -1136,7 +1135,6 @@
 														</div>
 													</div>
 													<div class="form-group"></div>
-													 */ ?>
 													
 													<div class="col-xl-6">
 														<div class="form-group">
@@ -1279,41 +1277,107 @@
 												  <label>{{ trans("messages.sub_project_detail.choose_payment_option")}}:</label>
 												  <div class="row">
 													@if(!empty($paymentMethods))
-													<div class="col-sm-12">
-														<button type="button" class="btn btn-primary toggle-online">Online</button>
-														<button type="button" class="btn btn-secondary toggle-offline">Offline</button>
-													</div>
-													
-													  @foreach($paymentMethods as $key=>$paymentMethod)
-														<?php $selected = "";?>
-														@if($key == 0)
-															<?php $selected = "1";?>
-														@endif
-														<div class="col-sm-6 payment-option {{$paymentMethod->id <= 13 ? 'online' : 'offline'}}">
-															<label class="kt-option">
+														<?php 
+															$paymentMethodsArray = $paymentMethods->toArray();
+															$onlinePayment = [];
+															$offlinePayment = [];
+															$hasOneTime = false;
+															$hasInstallment = false;
+															$hasSubscription = false;
+															foreach ($paymentMethodsArray as $entry) {
+																if ($entry['id'] >= 11) {
+																	$onlinePayment[] = $entry;
+																	if($entry['id'] == 12){
+																		$hasInstallment = true;
+																	}elseif($entry['id'] == 13){
+																		$hasSubscription = true;
+																	}else{
+																		$hasOneTime = true;
+																	}
+																} else {
+																	$offlinePayment[] = $entry;
+																}
+															}
+														?>
+
+														<div class="col-12">
+															@if (!empty($onlinePayment))
+															<label class="kt-option toggle-online"> 
 																<span class="kt-option__control">
 																	<span class="kt-radio">
-																		{{ Form::radio('payment_method', $paymentMethod->id, '', ['class' => 'payment_method_change', 'id' => 'payment_methd_'.$key]) }}
+																		{{ Form::radio('payment_method_type', 'online', '', ['class' => 'payment_method_change', 'id' =>
+																		'payment_methd_online']) }}
 																		<span></span>
 																	</span>
 																</span>
 																<span class="kt-option__label">
 																	<span class="kt-option__head">
-																		<span class="kt-option__title" id="payment_methd_name_{{$paymentMethod->id}}">
-																			{{$paymentMethod->name}} <!--(Recurring)-->
-																		</span>
-																	</span>
-																	<span class="kt-option__body">
-																		{{$paymentMethod->description}}
+																		<div class="item-holder">
+																			<span class="kt-option__title" id="payment_methd_name_online">
+																				Online Banking
+																			</span>
+																			<img src ="{{WEBSITE_IMG_URL}}senang.png">
+																		</div>
 																	</span>
 																</span>
 															</label>
+															@endif
+															@if (!empty($offlinePayment))
+															<label class="kt-option toggle-offline"> 
+																<span class="kt-option__control">
+																	<span class="kt-radio">
+																		{{ Form::radio('payment_method_type', 'offline', '', ['class' => 'payment_method_change', 'id' =>
+																		'payment_methd_offline']) }}
+																		<span></span>
+																	</span>
+																</span>
+																<span class="kt-option__label">
+																	<span class="kt-option__head">
+																		<span class="kt-option__title" id="payment_methd_name_offline">
+																			Offline
+																		</span>
+																	</span>
+																</span>
+															</label>
+															@endif
 														</div>
-													  @endforeach
-														<div class="tab_installment">
-															<div class="form-group">
+														<div class="col-12 online-tab-control">
+															@if ($hasOneTime)
+															<a href="#" class="toggle-onetime active">ONE TIME</a>
+															@endif
+															@if ($hasInstallment || $hasSubscription)
+															<a href="#" class="toggle-recurring <?php empty($onlinePayment) ?? 'active';?>">RECURRING</a>
+															@endif
+														</div>
+														@foreach ($paymentMethods as $paymentMethod)
+														<div class="col-sm-12 {{ $paymentMethod['id'] < 11 ? 'offline-tab' : 'online-tab' }} {{ $paymentMethod['id'] == 11 ? 'onetime-tab' : '' }} {{ $paymentMethod['id'] > 11 ? 'recurring-tab' : '' }} {{ $paymentMethod['id'] == 12 ? 'toggle-installment' : '' }} {{ $paymentMethod['id'] == 13 ? 'toggle-subscription' : '' }}">
+															<label class="kt-option"> 
+																<span class="kt-option__control">
+																	<span class="kt-radio">
+																		{{ Form::radio('payment_method', $paymentMethod['id'], '', ['class' => 'payment_method_change', 'id' =>
+																		'payment_methd_'.$key]) }}
+																		<span></span>
+																	</span>
+																</span>
+																<span class="kt-option__label">
+																	<span class="kt-option__head">
+																		<span class="kt-option__title" id="payment_methd_name_{{$paymentMethod['id']}}">
+																			{{$paymentMethod['name']}} <!--(Recurring)-->
+																		</span>
+																	</span>
+																	<span class="kt-option__body">
+																		{{$paymentMethod['description']}}
+																	</span>
+																</span>
+															</label>
+
+														</div>
+														@endforeach
+
+														<div class="col-xl-6 recurring-option">
+															<div class="form-group" id="numberOfInstallment">
 																<label for="dropdownNumbers">Number of Installment:</label>
-																<select class="form-control" id="dropdownNumbers" name="numberOfInstallment">
+																<select class="form-control" name="numberOfInstallment">
 																	@for ($i = 1; $i <= 12; $i++)
 																		<option value="{{ $i }}">{{ $i }}</option>
 																	@endfor
@@ -1321,7 +1385,7 @@
 															</div>
 															<div class="form-group">
 																<label for="dropdown">Select Frequency:</label>
-																<select class="form-control" id="dropdownFrequency" name="numberOfFrequency">
+																<select class="form-control" id="dropdownFrequency" name="paymentFrequency">
 																	<option value="1">Monthly</option>
 																	<option value="2">Quarterly</option>
 																	<option value="3">Biannually</option>
@@ -1666,22 +1730,78 @@
 .btn-success:disabled {
     cursor: not-allowed;
 }
+.item-holder {
+    display: flex;
+    flex-direction: column;
+}
+.item-holder img {
+    width: 100px;
+}
+.col-12.online-tab-control {
+    display: flex;
+    justify-content: start;
+}
+a.toggle-recurring, a.toggle-onetime {
+    padding: 20px;
+}
+a.toggle-recurring.active, a.toggle-onetime.active {
+    border-bottom: 5px solid #366cf3;
+}
 </style>
+
 <script>
     // Initially hide all payment options
-    $('.payment-option').hide();
-
+    $('.refrence_id_block').hide();
+    $('.offline-tab').hide();
+	$('.recurring-tab').hide();
+	$('.recurring-option').hide();
     // Show online payment options and hide offline options
     $('.toggle-online').click(function() {
-        $('.payment-option').hide(); // Hide all options first
-        $('.payment-option.online').show(); // Show online options
+		$('.offline-tab').hide(); // Hide all options first
+		$('.refrence_id_block').hide();
+		$('.recurring-option').hide();
+        $('.online-tab-control').show(); // Show online options
+        $('.online-tab').show(); // Show online options
+		$('.recurring-tab').hide();
     });
 
     // Show offline payment options and hide online options
     $('.toggle-offline').click(function() {
-        $('.payment-option').hide(); // Hide all options first
-        $('.payment-option.offline').show(); // Show offline options
+        $('.online-tab').hide(); // Hide all options first
+        $('.online-tab-control').hide(); // Hide all options first
+		$('.recurring-option').hide();
+        $('.offline-tab').show(); // Show offline options
+		$('.refrence_id_block').show();
     });
+
+	// Show onetime payment options and hide offline options
+	$('.toggle-onetime').click(function() {
+		$('.toggle-recurring').removeClass('active');
+		$('.toggle-onetime').addClass('active');
+		$('.recurring-tab').hide(); // Hide all options first
+		$('.recurring-option').hide();
+		$('.onetime-tab').show(); // Show online options
+	});
+
+	// Show recurring payment options and hide online options
+	$('.toggle-recurring').click(function() {
+		$('.toggle-onetime').removeClass('active');
+		$('.toggle-recurring').addClass('active');
+		$('.onetime-tab').hide(); // Hide all options first
+		$('.recurring-tab').show(); // Show offline options
+	});
+
+	// Show onetime payment options and hide offline options
+	$('.toggle-installment').click(function() {
+		$('.recurring-option').show();
+		$('#numberOfInstallment').show();
+	});
+
+	// Show recurring payment options and hide online options
+	$('.toggle-subscription').click(function() {
+		$('.recurring-option').show();
+		$('#numberOfInstallment').hide(); // Hide all options first
+	});
 </script>
 
 

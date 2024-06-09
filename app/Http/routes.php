@@ -80,6 +80,7 @@ require_once(APP_PATH.'/libraries/CustomHelper.php');
 		
 		Route::any('/check-payment','UsersController@CheckPayment');
 		Route::any('/payment-success','UsersController@PaymentSuccess');
+		Route::any('/payment-webhook','UsersController@PaymentWebHook');
 		Route::any('/payment-success-test','UsersController@PaymentSuccessTest'); //only for testing purpose
 		
 		Route::get('/download-invoice-pdf/{INVOICE_NUMBER}','GlobalusersController@downloadInvoicePDF');

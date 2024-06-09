@@ -88,7 +88,7 @@ class CronController extends BaseController{
 					$phone 					= $orderRecord->contact_phone;
 					$email 					= $orderRecord->contact_email;
 					$currency_sign 			= Currency;
-					$invoice_link 			= WEBSITE_URL."invoice/".$orderRecord->order_unique_id;  //"https://www.billplz.com/bills/".$orderRecord->bill_id;
+					$invoice_link 			= WEBSITE_URL."invoice/".$orderRecord->order_unique_id; 
 					$booking_expiry_date 	= $orderRecord->booking_expiry_date;
 					$remainingAmount		= $orderRecord->total_price - $totalApprovedPayments;
 					$due_date				= date("d/m/Y",strtotime($orderRecord->departure_date));
@@ -154,7 +154,7 @@ class CronController extends BaseController{
 					$phone 					= $orderRecord->contact_phone;
 					$email 					= $orderRecord->contact_email;
 					$currency_sign 			= Currency;
-					$invoice_link 			= WEBSITE_URL."invoice/".$orderRecord->order_unique_id;  //"https://www.billplz.com/bills/".$orderRecord->bill_id;
+					$invoice_link 			= WEBSITE_URL."invoice/".$orderRecord->order_unique_id;
 					$booking_expiry_date 	= $orderRecord->booking_expiry_date;
 					$remainingAmount		= $orderRecord->total_price - $totalApprovedPayments;
 					$due_date				= date("d/m/Y",strtotime($orderRecord->departure_date));

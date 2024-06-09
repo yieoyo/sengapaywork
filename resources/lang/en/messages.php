@@ -466,7 +466,7 @@
 "project_template.customize_template"=>"Customize Template",
 "project_template.enter_subproject_name"=>"Enter Subproject Name",
 "project_template.subproject_type"=>"Subject Type",
-"project_template.fix_price"=>"Fix Price",
+"project_template.fix_price"=>"Online, Recurring and Offline",
 "project_template.recurring"=>"Recurring",
 "project_template.payment_method"=>"Payment Method",
 "project_template.contributor_type"=>"Contributor Type",
