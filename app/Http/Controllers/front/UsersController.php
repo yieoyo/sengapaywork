@@ -3997,16 +3997,6 @@ class UsersController extends BaseController
 			return Redirect::to('/dashboard');
 		}
 	}
-
-
-	public function PaymentErrorPage()
-	{
-	}
-
-
-
-
-
 	public function exportAdminExcel()
 	{
 
@@ -8204,14 +8194,16 @@ class UsersController extends BaseController
 				$pendingRegistrationData['phone'] = Input::get('phone');
 				Session::set('RegisterDataPending', $pendingRegistrationData);
 			}
-
+			if (Input::get('payment_method') == 12) {
+				$splitPrice = ceil(Input::get('plan_price') / Input::get('paymentFrequency'));
+			}
 			$model->user_id = $userId;
 			$model->unique_donation_id = $this->createOrderId(Input::get('sub_project_id'));
 			$model->sub_project_id = Input::get('sub_project_id');
 			$model->is_recurring = ($subProjectDetails->payment_type == 1) ? 1 : 0;
 			$model->plan_type = !empty(Input::get('plan_type')) ? Input::get('plan_type') : '';
-			$model->plan_price = !empty(Input::get('plan_price')) ? Input::get('plan_price') : '';
-			$model->time_period = !empty(Input::get('time_period')) ? Input::get('time_period') : '';
+			$model->plan_price = !empty($splitPrice) ? $splitPrice : Input::get('plan_price');
+			$model->time_period = !empty(Input::get('time_period')) ? Input::get('time_period') : Input::get('time_period');
 			$model->other_plan_price = !empty(Input::get('other_plan_price')) ? Input::get('other_plan_price') : '';
 			$model->other_time_period = !empty(Input::get('other_time_period')) ? Input::get('other_time_period') : '';
 
@@ -8319,14 +8311,14 @@ class UsersController extends BaseController
 			
 			// senangpay detail
 			$senangPayApi = 'https://api.sandbox.senangpay.my/';
-			$billId = '';
+			$billId = $modelId;
 			$billUrl = '';
 			$paymentSecretKey = Config::get("Settings.payment_secret_key");
 			$paymentMerchantId = Config::get("Settings.payment_merchant_id");
 			$projectFather = Project::where('id', $subProjectDetails->project_id)->first();
 			$response = array();
 			// payload
-			$totalPrice = number_format((float)$activePlanPrice * 100, 2, '.', '');
+			$totalPrice = number_format((float)$activePlanPrice, 2, '.', '');
 			$projectName = urldecode($projectFather->name);
 			$description = urldecode($subProjectDetails->sub_project_name);
 			$amount = urldecode($totalPrice);
@@ -8387,9 +8379,9 @@ class UsersController extends BaseController
 				curl_close($ch);
 				$responseData = json_decode($response, true);
 				if ($responseData['result'] == true) {
-					$billId = $responseData['recurring_id'];
-					$secureHash = hash('sha256', $paymentSecretKey . $billId . $senangpayPayload['code']);
-					$billUrl = $senangPayApi. 'recurring/payment/' . urlencode($paymentMerchantId) . '?order_id=' . $order_id . '&recurring_id=' . urlencode($billId) . '&name=' . $name . '&email=' . $email . '&phone=' . $phone . '&hash=' . $secureHash;
+					$recurring_id = $responseData['recurring_id'];
+					$secureHash = hash('sha256', $paymentSecretKey . $recurring_id . $senangpayPayload['code']);
+					$billUrl = $senangPayApi. 'recurring/payment/' . urlencode($paymentMerchantId) . '?order_id=' . $order_id . '&recurring_id=' . urlencode($recurring_id) . '&name=' . $name . '&email=' . $email . '&phone=' . $phone . '&hash=' . $secureHash;
 
 				}
 			}
@@ -8434,7 +8426,7 @@ class UsersController extends BaseController
 				$donationPayment->sub_project_id = Input::get('sub_project_id');
 				$donationPayment->payment_option = $model->payment_method;
 				$donationPayment->invoice_id = !empty($billId) ? $billId : $model->unique_donation_id;
-				$donationPayment->reference_id = !empty($billId) ? $billId : $model->unique_donation_id;
+				$donationPayment->reference_id = !empty($recurring_id) ? $recurring_id : $billId;
 				$donationPayment->receipt = "";
 				$donationPayment->amount = $activePlanPrice;
 				$donationPayment->payment_status = "0";
