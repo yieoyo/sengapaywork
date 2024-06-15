@@ -3848,10 +3848,14 @@ class UsersController extends BaseController
 							$status = 4;
 						}
 
-						
 						$paymentDetails = DonationPayment::where('order_id', $order_id)->first();
 						if($paymentDetails){
 							if($paymentDetails->payment_status == 2) {
+								if(in_array($order->payment_method, [12,13])){
+									$order = $order->replicate();
+									$order->save();
+									$order->update(['bill_id', $order->id]);
+								}
 								//Create new donation payment
 								$billID = $order->bill_id;
 								$donationPayment = new DonationPayment;
@@ -8194,21 +8198,23 @@ class UsersController extends BaseController
 				$pendingRegistrationData['phone'] = Input::get('phone');
 				Session::set('RegisterDataPending', $pendingRegistrationData);
 			}
+			$splitPrice = Input::get('total_contribution');
 			if (Input::get('payment_method') == 12) {
-				$splitPrice = ceil(Input::get('plan_price') / Input::get('paymentFrequency'));
+				$splitPrice = ceil(Input::get('total_contribution') / Input::get('numberOfInstallment'));
 			}
+
 			$model->user_id = $userId;
 			$model->unique_donation_id = $this->createOrderId(Input::get('sub_project_id'));
 			$model->sub_project_id = Input::get('sub_project_id');
 			$model->is_recurring = ($subProjectDetails->payment_type == 1) ? 1 : 0;
 			$model->plan_type = !empty(Input::get('plan_type')) ? Input::get('plan_type') : '';
-			$model->plan_price = !empty($splitPrice) ? $splitPrice : Input::get('plan_price');
-			$model->time_period = !empty(Input::get('time_period')) ? Input::get('time_period') : Input::get('time_period');
+			$model->plan_price = !empty($splitPrice) ? $splitPrice : 0;
+			$model->time_period = !empty(Input::get('time_period')) ? Input::get('time_period') : 0;
 			$model->other_plan_price = !empty(Input::get('other_plan_price')) ? Input::get('other_plan_price') : '';
 			$model->other_time_period = !empty(Input::get('other_time_period')) ? Input::get('other_time_period') : '';
 
 			$model->default_project_plan = !empty(Input::get('default_project_plan')) ? Input::get('default_project_plan') : '';
-			$model->total_contribution = !empty(Input::get('total_contribution')) ? Input::get('total_contribution') : 0;
+			$model->total_contribution = !empty($splitPrice) ? $splitPrice : 0;
 			$model->quantity_project_plan = !empty(Input::get('quantity_project_plan')) ? Input::get('quantity_project_plan') : '';
 			$model->quantity = !empty(Input::get('quantity')) ? Input::get('quantity') : '';
 
